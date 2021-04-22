@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,7 +24,7 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
 
 /**
  * Marker interface used by <tt>List</tt> implementations to indicate that

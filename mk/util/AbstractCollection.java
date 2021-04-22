@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,7 +24,11 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
+
+import mk.lang.Equality;
+import mk.lang.Integer;
+import mk.lang.ManagedObject;
 
 /**
  * This class provides a skeletal implementation of the <tt>Collection</tt>
@@ -58,12 +63,20 @@ package java.util;
  * @since 1.2
  */
 
-public abstract class AbstractCollection<E> implements Collection<E> {
+public abstract class AbstractCollection<E extends ManagedObject> extends ManagedObject implements Collection<E> {
+    /**
+     * External implementation of object comparison
+     */
+    protected Equality<E> eq;
+
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
+     *
+     * @param  eq         the object with the implementation of external comparison
      */
-    protected AbstractCollection() {
+    protected AbstractCollection(Equality<E> eq) {
+        this.eq = eq;
     }
 
     // Query Operations
@@ -95,7 +108,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public boolean contains(Object o) {
+    public boolean contains(E o) {
         Iterator<E> it = iterator();
         if (o==null) {
             while (it.hasNext())
@@ -103,7 +116,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
                     return true;
         } else {
             while (it.hasNext())
-                if (o.equals(it.next()))
+                if (eq.equals(o, it.next()))
                     return true;
         }
         return false;
@@ -131,71 +144,15 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      * return list.toArray();
      * }</pre>
      */
-    public Object[] toArray() {
+    public ManagedObject[] toArray() {
         // Estimate size of array; be prepared to see more or fewer elements
-        Object[] r = new Object[size()];
+        ManagedObject[] r = new ManagedObject[size()];
         Iterator<E> it = iterator();
         for (int i = 0; i < r.length; i++) {
             if (! it.hasNext()) // fewer elements than expected
                 return Arrays.copyOf(r, i);
             r[i] = it.next();
         }
-        return it.hasNext() ? finishToArray(r, it) : r;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>This implementation returns an array containing all the elements
-     * returned by this collection's iterator in the same order, stored in
-     * consecutive elements of the array, starting with index {@code 0}.
-     * If the number of elements returned by the iterator is too large to
-     * fit into the specified array, then the elements are returned in a
-     * newly allocated array with length equal to the number of elements
-     * returned by the iterator, even if the size of this collection
-     * changes during iteration, as might happen if the collection permits
-     * concurrent modification during iteration.  The {@code size} method is
-     * called only as an optimization hint; the correct result is returned
-     * even if the iterator returns a different number of elements.
-     *
-     * <p>This method is equivalent to:
-     *
-     *  <pre> {@code
-     * List<E> list = new ArrayList<E>(size());
-     * for (E e : this)
-     *     list.add(e);
-     * return list.toArray(a);
-     * }</pre>
-     *
-     * @throws ArrayStoreException  {@inheritDoc}
-     * @throws NullPointerException {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T[] toArray(T[] a) {
-        // Estimate size of array; be prepared to see more or fewer elements
-        int size = size();
-        T[] r = a.length >= size ? a :
-                  (T[])java.lang.reflect.Array
-                  .newInstance(a.getClass().getComponentType(), size);
-        Iterator<E> it = iterator();
-
-        for (int i = 0; i < r.length; i++) {
-            if (! it.hasNext()) { // fewer elements than expected
-                if (a == r) {
-                    r[i] = null; // null-terminate
-                } else if (a.length < i) {
-                    return Arrays.copyOf(r, i);
-                } else {
-                    System.arraycopy(r, 0, a, 0, i);
-                    if (a.length > i) {
-                        a[i] = null;
-                    }
-                }
-                return a;
-            }
-            r[i] = (T)it.next();
-        }
-        // more elements than expected
         return it.hasNext() ? finishToArray(r, it) : r;
     }
 
@@ -218,7 +175,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      *         further elements returned by the iterator, trimmed to size
      */
     @SuppressWarnings("unchecked")
-    private static <T> T[] finishToArray(T[] r, Iterator<?> it) {
+    private static <T extends ManagedObject> T[] finishToArray(T[] r, Iterator<?> it) {
         int i = r.length;
         while (it.hasNext()) {
             int cap = r.length;
@@ -278,7 +235,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      */
-    public boolean remove(Object o) {
+    public boolean remove(E o) {
         Iterator<E> it = iterator();
         if (o==null) {
             while (it.hasNext()) {
@@ -289,7 +246,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
             }
         } else {
             while (it.hasNext()) {
-                if (o.equals(it.next())) {
+                if (eq.equals(o, it.next())) {
                     it.remove();
                     return true;
                 }
@@ -309,13 +266,18 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      * if it's contained in this collection.  If all elements are so
      * contained <tt>true</tt> is returned, otherwise <tt>false</tt>.
      *
+     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
+     *          iterate through collection with iterator instead of initial
+     *          for (Object e : c)
+     *              if (!contains(e))
+     *
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
-     * @see #contains(Object)
+     * @see #contains(E)
      */
-    public boolean containsAll(Collection<?> c) {
-        for (Object e : c)
-            if (!contains(e))
+    public boolean containsAll(Collection<? extends E> c) {
+        for (Iterator e = c.iterator(); e.hasNext(); )
+            if (!contains((E) e.next()))
                 return false;
         return true;
     }
@@ -330,18 +292,23 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      * <tt>UnsupportedOperationException</tt> unless <tt>add</tt> is
      * overridden (assuming the specified collection is non-empty).
      *
+     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
+     *       iterate through collection with iterator instead of initial
+     *       for (E e : c)
+     *           if (add(e))
+     *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      * @throws IllegalArgumentException      {@inheritDoc}
      * @throws IllegalStateException         {@inheritDoc}
      *
-     * @see #add(Object)
+     * @see #add(E)
      */
     public boolean addAll(Collection<? extends E> c) {
         boolean modified = false;
-        for (E e : c)
-            if (add(e))
+        for (Iterator<E> it = (Iterator<E>) c.iterator(); it.hasNext(); )
+            if (add(it.next()))
                 modified = true;
         return modified;
     }
@@ -364,13 +331,13 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      *
-     * @see #remove(Object)
-     * @see #contains(Object)
+     * @see #remove(E)
+     * @see #contains(E)
      */
-    public boolean removeAll(Collection<?> c) {
+    public boolean removeAll(Collection<E> c) {
         Objects.requireNonNull(c);
         boolean modified = false;
-        Iterator<?> it = iterator();
+        Iterator<E> it = iterator();
         while (it.hasNext()) {
             if (c.contains(it.next())) {
                 it.remove();
@@ -398,10 +365,10 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      *
-     * @see #remove(Object)
-     * @see #contains(Object)
+     * @see #remove(E)
+     * @see #contains(E)
      */
-    public boolean retainAll(Collection<?> c) {
+    public boolean retainAll(Collection<E> c) {
         Objects.requireNonNull(c);
         boolean modified = false;
         Iterator<E> it = iterator();
@@ -436,34 +403,4 @@ public abstract class AbstractCollection<E> implements Collection<E> {
             it.remove();
         }
     }
-
-
-    //  String conversion
-
-    /**
-     * Returns a string representation of this collection.  The string
-     * representation consists of a list of the collection's elements in the
-     * order they are returned by its iterator, enclosed in square brackets
-     * (<tt>"[]"</tt>).  Adjacent elements are separated by the characters
-     * <tt>", "</tt> (comma and space).  Elements are converted to strings as
-     * by {@link String#valueOf(Object)}.
-     *
-     * @return a string representation of this collection
-     */
-    public String toString() {
-        Iterator<E> it = iterator();
-        if (! it.hasNext())
-            return "[]";
-
-        StringBuilder sb = new StringBuilder();
-        sb.append('[');
-        for (;;) {
-            E e = it.next();
-            sb.append(e == this ? "(this Collection)" : e);
-            if (! it.hasNext())
-                return sb.append(']').toString();
-            sb.append(',').append(' ');
-        }
-    }
-
 }

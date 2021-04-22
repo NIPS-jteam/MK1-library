@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1994, 2012, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,21 +24,18 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
 
 /**
  * Thrown by various accessor methods to indicate that the element being requested
  * does not exist.
  *
  * @author  unascribed
- * @see     java.util.Enumeration#nextElement()
- * @see     java.util.Iterator#next()
+ * @see     mk.util.Iterator#next()
  * @since   JDK1.0
  */
 public
 class NoSuchElementException extends RuntimeException {
-    private static final long serialVersionUID = 6769829250639411880L;
-
     /**
      * Constructs a <code>NoSuchElementException</code> with <tt>null</tt>
      * as its error message string.

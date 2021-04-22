@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,7 +24,9 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
+
+import mk.lang.ManagedObject;
 
 /**
  * An iterator for lists that allows the programmer
@@ -40,7 +43,7 @@ package java.util;
  *                      Element(0)   Element(1)   Element(2)   ... Element(n-1)
  * cursor positions:  ^            ^            ^            ^                  ^
  * </PRE>
- * Note that the {@link #remove} and {@link #set(Object)} methods are
+ * Note that the {@link #remove} and {@link #set(E)} methods are
  * <i>not</i> defined in terms of the cursor position;  they are defined to
  * operate on the last element returned by a call to {@link #next} or
  * {@link #previous()}.
@@ -53,11 +56,10 @@ package java.util;
  * @see Collection
  * @see List
  * @see Iterator
- * @see Enumeration
  * @see List#listIterator()
  * @since   1.2
  */
-public interface ListIterator<E> extends Iterator<E> {
+public interface ListIterator<E extends ManagedObject> extends Iterator<E> {
     // Query Operations
 
     /**

@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,8 +24,11 @@
  * questions.
  */
 
-package java.util;
-import java.util.Map.Entry;
+package mk.util;
+
+import mk.lang.Equality;
+import mk.lang.Hasher;
+import mk.lang.ManagedObject;
 
 /**
  * This class provides a skeletal implementation of the <tt>Map</tt>
@@ -65,12 +69,29 @@ import java.util.Map.Entry;
  * @since 1.2
  */
 
-public abstract class AbstractMap<K,V> implements Map<K,V> {
+public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObject> extends ManagedObject implements Map<K,V> {
+    /**
+     * External implementations of 'equals' and 'hashCode' operations
+     * for hashed keys
+     */
+    protected Hasher<K> hs;
+
+    /**
+     * External implementation of object comparison for values
+     */
+    protected Equality<V> eq;
+
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
+     *
+     * @param  hs         the object with the implementations of 'equals'
+     *         and 'hashCode' operations for hashed keys
+     * @param  eq         the object with the implementation of external comparison
      */
-    protected AbstractMap() {
+    protected AbstractMap(Hasher<K> hs, Equality<V> eq) {
+        this.hs = hs;
+        this.eq = eq;
     }
 
     // Query Operations
@@ -108,7 +129,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public boolean containsValue(Object value) {
+    public boolean containsValue(V value) {
         Iterator<Entry<K,V>> i = entrySet().iterator();
         if (value==null) {
             while (i.hasNext()) {
@@ -119,7 +140,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
         } else {
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (value.equals(e.getValue()))
+                if (eq.equals((V) value, e.getValue()))
                     return true;
             }
         }
@@ -140,7 +161,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public boolean containsKey(Object key) {
+    public boolean containsKey(K key) {
         Iterator<Map.Entry<K,V>> i = entrySet().iterator();
         if (key==null) {
             while (i.hasNext()) {
@@ -151,7 +172,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
         } else {
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (key.equals(e.getKey()))
+                if (hs.equals(key, e.getKey()))
                     return true;
             }
         }
@@ -172,7 +193,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      */
-    public V get(Object key) {
+    public V get(K key) {
         Iterator<Entry<K,V>> i = entrySet().iterator();
         if (key==null) {
             while (i.hasNext()) {
@@ -183,7 +204,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
         } else {
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (key.equals(e.getKey()))
+                if (hs.equals((K) key, e.getKey()))
                     return e.getValue();
             }
         }
@@ -231,7 +252,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      */
-    public V remove(Object key) {
+    public V remove(K key) {
         Iterator<Entry<K,V>> i = entrySet().iterator();
         Entry<K,V> correctEntry = null;
         if (key==null) {
@@ -243,7 +264,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
         } else {
             while (correctEntry==null && i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (key.equals(e.getKey()))
+                if (hs.equals((K) key, e.getKey()))
                     correctEntry = e;
             }
         }
@@ -271,14 +292,21 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * <tt>UnsupportedOperationException</tt> if this map does not support
      * the <tt>put</tt> operation and the specified map is nonempty.
      *
+     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
+     *          iterate through collection with iterator instead of initial
+     *          for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
+     *              put(e.getKey(), e.getValue());
+     *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      * @throws IllegalArgumentException      {@inheritDoc}
      */
     public void putAll(Map<? extends K, ? extends V> m) {
-        for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
+        for (Iterator<? extends Entry<? extends K, ? extends V>> it = m.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<? extends K, ? extends V> e = it.next();
             put(e.getKey(), e.getValue());
+        }
     }
 
     /**
@@ -346,7 +374,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
-            ks = new AbstractSet<K>() {
+            ks = new AbstractSet<K>(hs) {
                 public Iterator<K> iterator() {
                     return new Iterator<K>() {
                         private Iterator<Entry<K,V>> i = entrySet().iterator();
@@ -377,7 +405,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
                     AbstractMap.this.clear();
                 }
 
-                public boolean contains(Object k) {
+                public boolean contains(K k) {
                     return AbstractMap.this.containsKey(k);
                 }
             };
@@ -405,7 +433,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
     public Collection<V> values() {
         Collection<V> vals = values;
         if (vals == null) {
-            vals = new AbstractCollection<V>() {
+            vals = new AbstractCollection<V>(eq) {
                 public Iterator<V> iterator() {
                     return new Iterator<V>() {
                         private Iterator<Entry<K,V>> i = entrySet().iterator();
@@ -436,7 +464,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
                     AbstractMap.this.clear();
                 }
 
-                public boolean contains(Object v) {
+                public boolean contains(V v) {
                     return AbstractMap.this.containsValue(v);
                 }
             };
@@ -447,143 +475,14 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
 
     public abstract Set<Entry<K,V>> entrySet();
 
-
-    // Comparison and hashing
-
-    /**
-     * Compares the specified object with this map for equality.  Returns
-     * <tt>true</tt> if the given object is also a map and the two maps
-     * represent the same mappings.  More formally, two maps <tt>m1</tt> and
-     * <tt>m2</tt> represent the same mappings if
-     * <tt>m1.entrySet().equals(m2.entrySet())</tt>.  This ensures that the
-     * <tt>equals</tt> method works properly across different implementations
-     * of the <tt>Map</tt> interface.
-     *
-     * @implSpec
-     * This implementation first checks if the specified object is this map;
-     * if so it returns <tt>true</tt>.  Then, it checks if the specified
-     * object is a map whose size is identical to the size of this map; if
-     * not, it returns <tt>false</tt>.  If so, it iterates over this map's
-     * <tt>entrySet</tt> collection, and checks that the specified map
-     * contains each mapping that this map contains.  If the specified map
-     * fails to contain such a mapping, <tt>false</tt> is returned.  If the
-     * iteration completes, <tt>true</tt> is returned.
-     *
-     * @param o object to be compared for equality with this map
-     * @return <tt>true</tt> if the specified object is equal to this map
-     */
-    public boolean equals(Object o) {
-        if (o == this)
-            return true;
-
-        if (!(o instanceof Map))
-            return false;
-        Map<?,?> m = (Map<?,?>) o;
-        if (m.size() != size())
-            return false;
-
-        try {
-            Iterator<Entry<K,V>> i = entrySet().iterator();
-            while (i.hasNext()) {
-                Entry<K,V> e = i.next();
-                K key = e.getKey();
-                V value = e.getValue();
-                if (value == null) {
-                    if (!(m.get(key)==null && m.containsKey(key)))
-                        return false;
-                } else {
-                    if (!value.equals(m.get(key)))
-                        return false;
-                }
-            }
-        } catch (ClassCastException unused) {
-            return false;
-        } catch (NullPointerException unused) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Returns the hash code value for this map.  The hash code of a map is
-     * defined to be the sum of the hash codes of each entry in the map's
-     * <tt>entrySet()</tt> view.  This ensures that <tt>m1.equals(m2)</tt>
-     * implies that <tt>m1.hashCode()==m2.hashCode()</tt> for any two maps
-     * <tt>m1</tt> and <tt>m2</tt>, as required by the general contract of
-     * {@link Object#hashCode}.
-     *
-     * @implSpec
-     * This implementation iterates over <tt>entrySet()</tt>, calling
-     * {@link Map.Entry#hashCode hashCode()} on each element (entry) in the
-     * set, and adding up the results.
-     *
-     * @return the hash code value for this map
-     * @see Map.Entry#hashCode()
-     * @see Object#equals(Object)
-     * @see Set#equals(Object)
-     */
-    public int hashCode() {
-        int h = 0;
-        Iterator<Entry<K,V>> i = entrySet().iterator();
-        while (i.hasNext())
-            h += i.next().hashCode();
-        return h;
-    }
-
-    /**
-     * Returns a string representation of this map.  The string representation
-     * consists of a list of key-value mappings in the order returned by the
-     * map's <tt>entrySet</tt> view's iterator, enclosed in braces
-     * (<tt>"{}"</tt>).  Adjacent mappings are separated by the characters
-     * <tt>", "</tt> (comma and space).  Each key-value mapping is rendered as
-     * the key followed by an equals sign (<tt>"="</tt>) followed by the
-     * associated value.  Keys and values are converted to strings as by
-     * {@link String#valueOf(Object)}.
-     *
-     * @return a string representation of this map
-     */
-    public String toString() {
-        Iterator<Entry<K,V>> i = entrySet().iterator();
-        if (! i.hasNext())
-            return "{}";
-
-        StringBuilder sb = new StringBuilder();
-        sb.append('{');
-        for (;;) {
-            Entry<K,V> e = i.next();
-            K key = e.getKey();
-            V value = e.getValue();
-            sb.append(key   == this ? "(this Map)" : key);
-            sb.append('=');
-            sb.append(value == this ? "(this Map)" : value);
-            if (! i.hasNext())
-                return sb.append('}').toString();
-            sb.append(',').append(' ');
-        }
-    }
-
-    /**
-     * Returns a shallow copy of this <tt>AbstractMap</tt> instance: the keys
-     * and values themselves are not cloned.
-     *
-     * @return a shallow copy of this map
-     */
-    protected Object clone() throws CloneNotSupportedException {
-        AbstractMap<?,?> result = (AbstractMap<?,?>)super.clone();
-        result.keySet = null;
-        result.values = null;
-        return result;
-    }
-
     /**
      * Utility method for SimpleEntry and SimpleImmutableEntry.
      * Test for equality, checking for nulls.
      *
      * NB: Do not replace with Object.equals until JDK-8015417 is resolved.
      */
-    private static boolean eq(Object o1, Object o2) {
-        return o1 == null ? o2 == null : o1.equals(o2);
+    private static <T extends ManagedObject> boolean eq(T o1, T o2, Equality<T> eq) {
+        return o1 == null ? o2 == null : eq.equals(o1, o2);
     }
 
     // Implementation Note: SimpleEntry and SimpleImmutableEntry
@@ -604,11 +503,9 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      *
      * @since 1.6
      */
-    public static class SimpleEntry<K,V>
-        implements Entry<K,V>, java.io.Serializable
+    public static class SimpleEntry<K extends ManagedObject,V extends ManagedObject>
+        extends Entry<K,V>
     {
-        private static final long serialVersionUID = -8499721149061103585L;
-
         private final K key;
         private V value;
 
@@ -665,65 +562,6 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
             this.value = value;
             return oldValue;
         }
-
-        /**
-         * Compares the specified object with this entry for equality.
-         * Returns {@code true} if the given object is also a map entry and
-         * the two entries represent the same mapping.  More formally, two
-         * entries {@code e1} and {@code e2} represent the same mapping
-         * if<pre>
-         *   (e1.getKey()==null ?
-         *    e2.getKey()==null :
-         *    e1.getKey().equals(e2.getKey()))
-         *   &amp;&amp;
-         *   (e1.getValue()==null ?
-         *    e2.getValue()==null :
-         *    e1.getValue().equals(e2.getValue()))</pre>
-         * This ensures that the {@code equals} method works properly across
-         * different implementations of the {@code Map.Entry} interface.
-         *
-         * @param o object to be compared for equality with this map entry
-         * @return {@code true} if the specified object is equal to this map
-         *         entry
-         * @see    #hashCode
-         */
-        public boolean equals(Object o) {
-            if (!(o instanceof Map.Entry))
-                return false;
-            Map.Entry<?,?> e = (Map.Entry<?,?>)o;
-            return eq(key, e.getKey()) && eq(value, e.getValue());
-        }
-
-        /**
-         * Returns the hash code value for this map entry.  The hash code
-         * of a map entry {@code e} is defined to be: <pre>
-         *   (e.getKey()==null   ? 0 : e.getKey().hashCode()) ^
-         *   (e.getValue()==null ? 0 : e.getValue().hashCode())</pre>
-         * This ensures that {@code e1.equals(e2)} implies that
-         * {@code e1.hashCode()==e2.hashCode()} for any two Entries
-         * {@code e1} and {@code e2}, as required by the general
-         * contract of {@link Object#hashCode}.
-         *
-         * @return the hash code value for this map entry
-         * @see    #equals
-         */
-        public int hashCode() {
-            return (key   == null ? 0 :   key.hashCode()) ^
-                   (value == null ? 0 : value.hashCode());
-        }
-
-        /**
-         * Returns a String representation of this map entry.  This
-         * implementation returns the string representation of this
-         * entry's key followed by the equals character ("<tt>=</tt>")
-         * followed by the string representation of this entry's value.
-         *
-         * @return a String representation of this map entry
-         */
-        public String toString() {
-            return key + "=" + value;
-        }
-
     }
 
     /**
@@ -734,11 +572,9 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      *
      * @since 1.6
      */
-    public static class SimpleImmutableEntry<K,V>
-        implements Entry<K,V>, java.io.Serializable
+    public static class SimpleImmutableEntry<K extends ManagedObject,V extends ManagedObject>
+        extends Entry<K,V>
     {
-        private static final long serialVersionUID = 7138329143949025153L;
-
         private final K key;
         private final V value;
 
@@ -796,65 +632,30 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
         public V setValue(V value) {
             throw new UnsupportedOperationException();
         }
-
-        /**
-         * Compares the specified object with this entry for equality.
-         * Returns {@code true} if the given object is also a map entry and
-         * the two entries represent the same mapping.  More formally, two
-         * entries {@code e1} and {@code e2} represent the same mapping
-         * if<pre>
-         *   (e1.getKey()==null ?
-         *    e2.getKey()==null :
-         *    e1.getKey().equals(e2.getKey()))
-         *   &amp;&amp;
-         *   (e1.getValue()==null ?
-         *    e2.getValue()==null :
-         *    e1.getValue().equals(e2.getValue()))</pre>
-         * This ensures that the {@code equals} method works properly across
-         * different implementations of the {@code Map.Entry} interface.
-         *
-         * @param o object to be compared for equality with this map entry
-         * @return {@code true} if the specified object is equal to this map
-         *         entry
-         * @see    #hashCode
-         */
-        public boolean equals(Object o) {
-            if (!(o instanceof Map.Entry))
-                return false;
-            Map.Entry<?,?> e = (Map.Entry<?,?>)o;
-            return eq(key, e.getKey()) && eq(value, e.getValue());
-        }
-
-        /**
-         * Returns the hash code value for this map entry.  The hash code
-         * of a map entry {@code e} is defined to be: <pre>
-         *   (e.getKey()==null   ? 0 : e.getKey().hashCode()) ^
-         *   (e.getValue()==null ? 0 : e.getValue().hashCode())</pre>
-         * This ensures that {@code e1.equals(e2)} implies that
-         * {@code e1.hashCode()==e2.hashCode()} for any two Entries
-         * {@code e1} and {@code e2}, as required by the general
-         * contract of {@link Object#hashCode}.
-         *
-         * @return the hash code value for this map entry
-         * @see    #equals
-         */
-        public int hashCode() {
-            return (key   == null ? 0 :   key.hashCode()) ^
-                   (value == null ? 0 : value.hashCode());
-        }
-
-        /**
-         * Returns a String representation of this map entry.  This
-         * implementation returns the string representation of this
-         * entry's key followed by the equals character ("<tt>=</tt>")
-         * followed by the string representation of this entry's value.
-         *
-         * @return a String representation of this map entry
-         */
-        public String toString() {
-            return key + "=" + value;
-        }
-
     }
 
+    /**
+     * Implementation of Map.Entry<K, V> object comparison
+     */
+    public static class EqualityMapEntry<K extends ManagedObject,V extends ManagedObject> implements Equality<Map.Entry<K, V>> {
+        private Hasher<K> hs;
+        private Equality<V> eq;
+
+        EqualityMapEntry(Hasher<K> h, Equality<V> e){
+            hs = h;
+            eq = e;
+        }
+
+        @Override
+        public boolean equals(Map.Entry<K, V> a, Map.Entry<K, V> b) {
+            if (a == b)
+                return true;
+            if (a instanceof Map.Entry) {
+                if (((a.getKey() != null && hs.equals(a.getKey(),b.getKey()))
+                        && (a.getValue() != null && eq.equals(a.getValue(), b.getValue()))))
+                    return true;
+            }
+            return false;
+        }
+    }
 }

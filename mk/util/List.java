@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1997, 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,9 +24,10 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
 
-import java.util.function.UnaryOperator;
+import mk.lang.Equality;
+import mk.lang.ManagedObject;
 
 // Android-removed: removed link to collections framework docs
 /**
@@ -88,32 +90,6 @@ import java.util.function.UnaryOperator;
  * Such exceptions are marked as "optional" in the specification for this
  * interface.
  *
- * <h2><a id="immutable">Immutable List Static Factory Methods</a></h2>
- * <p>The {@link List#of(Object...) List.of()} static factory methods
- * provide a convenient way to create immutable lists. The {@code List}
- * instances created by these methods have the following characteristics:
- *
- * <ul>
- * <li>They are <em>structurally immutable</em>. Elements cannot be added, removed,
- * or replaced. Calling any mutator method will always cause
- * {@code UnsupportedOperationException} to be thrown.
- * However, if the contained elements are themselves mutable,
- * this may cause the List's contents to appear to change.
- * <li>They disallow {@code null} elements. Attempts to create them with
- * {@code null} elements result in {@code NullPointerException}.
- * <li>They are serializable if all elements are serializable.
- * <li>The order of elements in the list is the same as the order of the
- * provided arguments, or of the elements in the provided array.
- * <li>They are <a href="../lang/doc-files/ValueBased.html">value-based</a>.
- * Callers should make no assumptions about the identity of the returned instances.
- * Factories are free to create new instances or reuse existing ones. Therefore,
- * identity-sensitive operations on these instances (reference equality ({@code ==}),
- * identity hash code, and synchronization) are unreliable and should be avoided.
- * <li>They are serialized as specified on the
- * <a href="{@docRoot}/serialized-form.html#java.util.CollSer">Serialized Form</a>
- * page.
- * </ul>
- *
  * @param <E> the type of elements in this list
  *
  * @author  Josh Bloch
@@ -121,17 +97,13 @@ import java.util.function.UnaryOperator;
  * @see Collection
  * @see Set
  * @see ArrayList
- * @see LinkedList
- * @see Vector
- * @see Arrays#asList(Object[])
- * @see Collections#nCopies(int, Object)
- * @see Collections#EMPTY_LIST
+ * @see Arrays#asList(Equality, ManagedObject[])
+ * @see Collections#nCopies(int, ManagedObject, Equality)
  * @see AbstractList
- * @see AbstractSequentialList
  * @since 1.2
  */
 
-public interface List<E> extends Collection<E> {
+public interface List<E extends ManagedObject> extends Collection<E> {
     // Query Operations
 
     /**
@@ -154,7 +126,7 @@ public interface List<E> extends Collection<E> {
      * Returns {@code true} if this list contains the specified element.
      * More formally, returns {@code true} if and only if this list contains
      * at least one element {@code e} such that
-     * {@code Objects.equals(o, e)}.
+     * {@code Equality.equals(o, e)}.
      *
      * @param o element whose presence in this list is to be tested
      * @return {@code true} if this list contains the specified element
@@ -165,7 +137,7 @@ public interface List<E> extends Collection<E> {
      *         list does not permit null elements
      * (<a href="Collection.html#optional-restrictions">optional</a>)
      */
-    boolean contains(Object o);
+    boolean contains(E o);
 
     /**
      * Returns an iterator over the elements in this list in proper sequence.
@@ -188,51 +160,9 @@ public interface List<E> extends Collection<E> {
      *
      * @return an array containing all of the elements in this list in proper
      *         sequence
-     * @see Arrays#asList(Object[])
+     * @see Arrays#asList(Equality, ManagedObject[])
      */
-    Object[] toArray();
-
-    /**
-     * Returns an array containing all of the elements in this list in
-     * proper sequence (from first to last element); the runtime type of
-     * the returned array is that of the specified array.  If the list fits
-     * in the specified array, it is returned therein.  Otherwise, a new
-     * array is allocated with the runtime type of the specified array and
-     * the size of this list.
-     *
-     * <p>If the list fits in the specified array with room to spare (i.e.,
-     * the array has more elements than the list), the element in the array
-     * immediately following the end of the list is set to {@code null}.
-     * (This is useful in determining the length of the list <i>only</i> if
-     * the caller knows that the list does not contain any null elements.)
-     *
-     * <p>Like the {@link #toArray()} method, this method acts as bridge between
-     * array-based and collection-based APIs.  Further, this method allows
-     * precise control over the runtime type of the output array, and may,
-     * under certain circumstances, be used to save allocation costs.
-     *
-     * <p>Suppose {@code x} is a list known to contain only strings.
-     * The following code can be used to dump the list into a newly
-     * allocated array of {@code String}:
-     *
-     * <pre>{@code
-     *     String[] y = x.toArray(new String[0]);
-     * }</pre>
-     *
-     * Note that {@code toArray(new Object[0])} is identical in function to
-     * {@code toArray()}.
-     *
-     * @param a the array into which the elements of this list are to
-     *          be stored, if it is big enough; otherwise, a new array of the
-     *          same runtime type is allocated for this purpose.
-     * @return an array containing the elements of this list
-     * @throws ArrayStoreException if the runtime type of the specified array
-     *         is not a supertype of the runtime type of every element in
-     *         this list
-     * @throws NullPointerException if the specified array is null
-     */
-    <T> T[] toArray(T[] a);
-
+    ManagedObject[] toArray();
 
     // Modification Operations
 
@@ -281,7 +211,7 @@ public interface List<E> extends Collection<E> {
      * @throws UnsupportedOperationException if the {@code remove} operation
      *         is not supported by this list
      */
-    boolean remove(Object o);
+    boolean remove(E o);
 
 
     // Bulk Modification Operations
@@ -302,9 +232,9 @@ public interface List<E> extends Collection<E> {
      *         elements
      *         (<a href="Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
-     * @see #contains(Object)
+     * @see #contains(E)
      */
-    boolean containsAll(Collection<?> c);
+    boolean containsAll(Collection<? extends E> c);
 
     /**
      * Appends all of the elements in the specified collection to the end of
@@ -325,7 +255,7 @@ public interface List<E> extends Collection<E> {
      *         elements, or if the specified collection is null
      * @throws IllegalArgumentException if some property of an element of the
      *         specified collection prevents it from being added to this list
-     * @see #add(Object)
+     * @see #add(E)
      */
     boolean addAll(Collection<? extends E> c);
 
@@ -373,10 +303,10 @@ public interface List<E> extends Collection<E> {
      *         specified collection does not permit null elements
      *         (<a href="Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
-     * @see #remove(Object)
-     * @see #contains(Object)
+     * @see #remove(E)
+     * @see #contains(E)
      */
-    boolean removeAll(Collection<?> c);
+    boolean removeAll(Collection<E> c);
 
     /**
      * Retains only the elements in this list that are contained in the
@@ -395,47 +325,10 @@ public interface List<E> extends Collection<E> {
      *         specified collection does not permit null elements
      *         (<a href="Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
-     * @see #remove(Object)
-     * @see #contains(Object)
+     * @see #remove(E)
+     * @see #contains(E)
      */
-    boolean retainAll(Collection<?> c);
-
-    /**
-     * Replaces each element of this list with the result of applying the
-     * operator to that element.  Errors or runtime exceptions thrown by
-     * the operator are relayed to the caller.
-     *
-     * @implSpec
-     * The default implementation is equivalent to, for this {@code list}:
-     * <pre>{@code
-     *     final ListIterator<E> li = list.listIterator();
-     *     while (li.hasNext()) {
-     *         li.set(operator.apply(li.next()));
-     *     }
-     * }</pre>
-     *
-     * If the list's list-iterator does not support the {@code set} operation
-     * then an {@code UnsupportedOperationException} will be thrown when
-     * replacing the first element.
-     *
-     * @param operator the operator to apply to each element
-     * @throws UnsupportedOperationException if this list is unmodifiable.
-     *         Implementations may throw this exception if an element
-     *         cannot be replaced or if, in general, modification is not
-     *         supported
-     * @throws NullPointerException if the specified operator is null or
-     *         if the operator result is a null value and this list does
-     *         not permit null elements
-     *         (<a href="Collection.html#optional-restrictions">optional</a>)
-     * @since 1.8
-     */
-    default void replaceAll(UnaryOperator<E> operator) {
-        Objects.requireNonNull(operator);
-        final ListIterator<E> li = this.listIterator();
-        while (li.hasNext()) {
-            li.set(operator.apply(li.next()));
-        }
-    }
+    boolean retainAll(Collection<E> c);
 
     // Android-added: List.sort() vs. Collections.sort() app compat.
     // Added a warning in the documentation.
@@ -450,16 +343,12 @@ public interface List<E> extends Collection<E> {
      * a {@code ClassCastException} for any elements {@code e1} and {@code e2}
      * in the list).
      *
-     * <p>If the specified comparator is {@code null} then all elements in this
-     * list must implement the {@link Comparable} interface and the elements'
-     * {@linkplain Comparable natural ordering} should be used.
-     *
      * <p>This list must be modifiable, but need not be resizable.
      *
      * <p>For apps running on and targeting Android versions greater than
-     * Nougat (API level {@code > 25}), {@link Collections#sort(List)}
+     * Nougat (API level {@code > 25}), {@link Collections#sort(List, Comparator)}
      * delegates to this method. Such apps must not call
-     * {@link Collections#sort(List)} from this method. Instead, prefer
+     * {@link Collections#sort(List, Comparator)} from this method. Instead, prefer
      * not overriding this method at all. If you must override it, consider
      * this implementation:
      * <pre>
@@ -506,8 +395,8 @@ public interface List<E> extends Collection<E> {
      * January 1993.
      *
      * @param c the {@code Comparator} used to compare list elements.
-     *          A {@code null} value indicates that the elements'
-     *          {@linkplain Comparable natural ordering} should be used
+     *          <tt>null</tt> value is not acceptable for the moment due to
+     *          natural order support removal.
      * @throws ClassCastException if the list contains elements that are not
      *         <i>mutually comparable</i> using the specified comparator
      * @throws UnsupportedOperationException if the list's list-iterator does
@@ -520,10 +409,10 @@ public interface List<E> extends Collection<E> {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     default void sort(Comparator<? super E> c) {
-        Object[] a = this.toArray();
+        ManagedObject[] a = this.toArray();
         Arrays.sort(a, (Comparator) c);
         ListIterator<E> i = this.listIterator();
-        for (Object e : a) {
+        for (ManagedObject e : a) {
             i.next();
             i.set((E) e);
         }
@@ -537,45 +426,6 @@ public interface List<E> extends Collection<E> {
      *         is not supported by this list
      */
     void clear();
-
-
-    // Comparison and hashing
-
-    /**
-     * Compares the specified object with this list for equality.  Returns
-     * {@code true} if and only if the specified object is also a list, both
-     * lists have the same size, and all corresponding pairs of elements in
-     * the two lists are <i>equal</i>.  (Two elements {@code e1} and
-     * {@code e2} are <i>equal</i> if {@code Objects.equals(e1, e2)}.)
-     * In other words, two lists are defined to be
-     * equal if they contain the same elements in the same order.  This
-     * definition ensures that the equals method works properly across
-     * different implementations of the {@code List} interface.
-     *
-     * @param o the object to be compared for equality with this list
-     * @return {@code true} if the specified object is equal to this list
-     */
-    boolean equals(Object o);
-
-    /**
-     * Returns the hash code value for this list.  The hash code of a list
-     * is defined to be the result of the following calculation:
-     * <pre>{@code
-     *     int hashCode = 1;
-     *     for (E e : list)
-     *         hashCode = 31*hashCode + (e==null ? 0 : e.hashCode());
-     * }</pre>
-     * This ensures that {@code list1.equals(list2)} implies that
-     * {@code list1.hashCode()==list2.hashCode()} for any two lists,
-     * {@code list1} and {@code list2}, as required by the general
-     * contract of {@link Object#hashCode}.
-     *
-     * @return the hash code value for this list
-     * @see Object#equals(Object)
-     * @see #equals(Object)
-     */
-    int hashCode();
-
 
     // Positional Access Operations
 
@@ -652,7 +502,7 @@ public interface List<E> extends Collection<E> {
      * Returns the index of the first occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
      * More formally, returns the lowest index {@code i} such that
-     * {@code Objects.equals(o, get(i))},
+     * {@code Equality.equals(o, get(i))},
      * or -1 if there is no such index.
      *
      * @param o element to search for
@@ -665,13 +515,13 @@ public interface List<E> extends Collection<E> {
      *         list does not permit null elements
      *         (<a href="Collection.html#optional-restrictions">optional</a>)
      */
-    int indexOf(Object o);
+    int indexOf(E o);
 
     /**
      * Returns the index of the last occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
      * More formally, returns the highest index {@code i} such that
-     * {@code Objects.equals(o, get(i))},
+     * {@code Equality.equals(o, get(i))},
      * or -1 if there is no such index.
      *
      * @param o element to search for
@@ -684,7 +534,7 @@ public interface List<E> extends Collection<E> {
      *         list does not permit null elements
      *         (<a href="Collection.html#optional-restrictions">optional</a>)
      */
-    int lastIndexOf(Object o);
+    int lastIndexOf(E o);
 
 
     // List Iterators
@@ -754,308 +604,8 @@ public interface List<E> extends Collection<E> {
     List<E> subList(int fromIndex, int toIndex);
 
     /**
-     * Creates a {@link Spliterator} over the elements in this list.
-     *
-     * <p>The {@code Spliterator} reports {@link Spliterator#SIZED} and
-     * {@link Spliterator#ORDERED}.  Implementations should document the
-     * reporting of additional characteristic values.
-     *
-     * @implSpec
-     * The default implementation creates a
-     * <em><a href="Spliterator.html#binding">late-binding</a></em>
-     * spliterator as follows:
-     * <ul>
-     * <li>If the list is an instance of {@link RandomAccess} then the default
-     *     implementation creates a spliterator that traverses elements by
-     *     invoking the method {@link List#get}.  If such invocation results or
-     *     would result in an {@code IndexOutOfBoundsException} then the
-     *     spliterator will <em>fail-fast</em> and throw a
-     *     {@code ConcurrentModificationException}.
-     *     If the list is also an instance of {@link AbstractList} then the
-     *     spliterator will use the list's {@link AbstractList#modCount modCount}
-     *     field to provide additional <em>fail-fast</em> behavior.
-     * <li>Otherwise, the default implementation creates a spliterator from the
-     *     list's {@code Iterator}.  The spliterator inherits the
-     *     <em>fail-fast</em> of the list's iterator.
-     * </ul>
-     *
-     * @implNote
-     * The created {@code Spliterator} additionally reports
-     * {@link Spliterator#SUBSIZED}.
-     *
-     * @return a {@code Spliterator} over the elements in this list
-     * @since 1.8
+     * Returns external implementation of object comparison.
+     * @return external implementation of object comparison.
      */
-    @Override
-    default Spliterator<E> spliterator() {
-        if (this instanceof RandomAccess) {
-            return new AbstractList.RandomAccessSpliterator<>(this);
-        } else {
-            return Spliterators.spliterator(this, Spliterator.ORDERED);
-        }
-    }
-
-    /**
-     * Returns an immutable list containing zero elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @return an empty {@code List}
-     *
-     * @since 9
-     */
-    static <E> List<E> of() {
-        return ImmutableCollections.List0.instance();
-    }
-
-    /**
-     * Returns an immutable list containing one element.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the single element
-     * @return a {@code List} containing the specified element
-     * @throws NullPointerException if the element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1) {
-        return new ImmutableCollections.List1<>(e1);
-    }
-
-    /**
-     * Returns an immutable list containing two elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2) {
-        return new ImmutableCollections.List2<>(e1, e2);
-    }
-
-    /**
-     * Returns an immutable list containing three elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2, E e3) {
-        return new ImmutableCollections.ListN<>(e1, e2, e3);
-    }
-
-    /**
-     * Returns an immutable list containing four elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2, E e3, E e4) {
-        return new ImmutableCollections.ListN<>(e1, e2, e3, e4);
-    }
-
-    /**
-     * Returns an immutable list containing five elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2, E e3, E e4, E e5) {
-        return new ImmutableCollections.ListN<>(e1, e2, e3, e4, e5);
-    }
-
-    /**
-     * Returns an immutable list containing six elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2, E e3, E e4, E e5, E e6) {
-        return new ImmutableCollections.ListN<>(e1, e2, e3, e4, e5,
-                                                e6);
-    }
-
-    /**
-     * Returns an immutable list containing seven elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @param e7 the seventh element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7) {
-        return new ImmutableCollections.ListN<>(e1, e2, e3, e4, e5,
-                                                e6, e7);
-    }
-
-    /**
-     * Returns an immutable list containing eight elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @param e7 the seventh element
-     * @param e8 the eighth element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8) {
-        return new ImmutableCollections.ListN<>(e1, e2, e3, e4, e5,
-                                                e6, e7, e8);
-    }
-
-    /**
-     * Returns an immutable list containing nine elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @param e7 the seventh element
-     * @param e8 the eighth element
-     * @param e9 the ninth element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9) {
-        return new ImmutableCollections.ListN<>(e1, e2, e3, e4, e5,
-                                                e6, e7, e8, e9);
-    }
-
-    /**
-     * Returns an immutable list containing ten elements.
-     *
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @param e7 the seventh element
-     * @param e8 the eighth element
-     * @param e9 the ninth element
-     * @param e10 the tenth element
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> List<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9, E e10) {
-        return new ImmutableCollections.ListN<>(e1, e2, e3, e4, e5,
-                                                e6, e7, e8, e9, e10);
-    }
-
-    /**
-     * Returns an immutable list containing an arbitrary number of elements.
-     * See <a href="#immutable">Immutable List Static Factory Methods</a> for details.
-     *
-     * @apiNote
-     * This method also accepts a single array as an argument. The element type of
-     * the resulting list will be the component type of the array, and the size of
-     * the list will be equal to the length of the array. To create a list with
-     * a single element that is an array, do the following:
-     *
-     * <pre>{@code
-     *     String[] array = ... ;
-     *     List<String[]> list = List.<String[]>of(array);
-     * }</pre>
-     *
-     * This will cause the {@link List#of(Object) List.of(E)} method
-     * to be invoked instead.
-     *
-     * @param <E> the {@code List}'s element type
-     * @param elements the elements to be contained in the list
-     * @return a {@code List} containing the specified elements
-     * @throws NullPointerException if an element is {@code null} or if the array is {@code null}
-     *
-     * @since 9
-     */
-    @SafeVarargs
-    @SuppressWarnings("varargs")
-    static <E> List<E> of(E... elements) {
-        switch (elements.length) { // implicit null check of elements
-            case 0:
-                return ImmutableCollections.List0.instance();
-            case 1:
-                return new ImmutableCollections.List1<>(elements[0]);
-            case 2:
-                return new ImmutableCollections.List2<>(elements[0], elements[1]);
-            default:
-                return new ImmutableCollections.ListN<>(elements);
-        }
-    }
+    Equality<E> getEquality();
 }

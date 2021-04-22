@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,7 +24,11 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
+
+import mk.lang.Hasher;
+import mk.lang.ManagedObject;
+import mk.lang.Math;
 
 /**
  * <p>Hash table and linked list implementation of the <tt>Set</tt> interface,
@@ -77,12 +82,6 @@ package java.util;
  * externally.  This is typically accomplished by synchronizing on some
  * object that naturally encapsulates the set.
  *
- * If no such object exists, the set should be "wrapped" using the
- * {@link Collections#synchronizedSet Collections.synchronizedSet}
- * method.  This is best done at creation time, to prevent accidental
- * unsynchronized access to the set: <pre>
- *   Set s = Collections.synchronizedSet(new LinkedHashSet(...));</pre>
- *
  * <p>The iterators returned by this class's <tt>iterator</tt> method are
  * <em>fail-fast</em>: if the set is modified at any time after the iterator
  * is created, in any way except through the iterator's own <tt>remove</tt>
@@ -106,20 +105,17 @@ package java.util;
  * @param <E> the type of elements maintained by this set
  *
  * @author  Josh Bloch
- * @see     Object#hashCode()
+ * @see     Hasher#getHashCode
  * @see     Collection
  * @see     Set
  * @see     HashSet
  * @see     TreeSet
- * @see     Hashtable
  * @since   1.4
  */
 
-public class LinkedHashSet<E>
+public class LinkedHashSet<E extends ManagedObject>
     extends HashSet<E>
-    implements Set<E>, Cloneable, java.io.Serializable {
-
-    private static final long serialVersionUID = -2851667679971038690L;
+    implements Set<E> {
 
     /**
      * Constructs a new, empty linked hash set with the specified initial
@@ -127,11 +123,13 @@ public class LinkedHashSet<E>
      *
      * @param      initialCapacity the initial capacity of the linked hash set
      * @param      loadFactor      the load factor of the linked hash set
+     * @param      hs              the object with the implementations of 'equals'
+     *             and 'hashCode' operations for hashed keys
      * @throws     IllegalArgumentException  if the initial capacity is less
-     *               than zero, or if the load factor is nonpositive
+     *             than zero, or if the load factor is nonpositive
      */
-    public LinkedHashSet(int initialCapacity, float loadFactor) {
-        super(initialCapacity, loadFactor, true);
+    public LinkedHashSet(int initialCapacity, float loadFactor, Hasher<E> hs) {
+        super(initialCapacity, loadFactor, true, hs);
     }
 
     /**
@@ -139,19 +137,24 @@ public class LinkedHashSet<E>
      * capacity and the default load factor (0.75).
      *
      * @param   initialCapacity   the initial capacity of the LinkedHashSet
+     * @param   hs                the object with the implementations of 'equals'
+     *          and 'hashCode' operations for hashed keys
      * @throws  IllegalArgumentException if the initial capacity is less
-     *              than zero
+     *          than zero
      */
-    public LinkedHashSet(int initialCapacity) {
-        super(initialCapacity, .75f, true);
+    public LinkedHashSet(int initialCapacity, Hasher<E> hs) {
+        super(initialCapacity, .75f, true, hs);
     }
 
     /**
      * Constructs a new, empty linked hash set with the default initial
      * capacity (16) and load factor (0.75).
+     *
+     * @param hs the object with the implementations of 'equals' and
+     *           'hashCode' operations for hashed keys
      */
-    public LinkedHashSet() {
-        super(16, .75f, true);
+    public LinkedHashSet(Hasher<E> hs) {
+        super(16, .75f, true, hs);
     }
 
     /**
@@ -162,34 +165,12 @@ public class LinkedHashSet<E>
      *
      * @param c  the collection whose elements are to be placed into
      *           this set
+     * @param hs the object with the implementations of 'equals' and
+     *           'hashCode' operations for hashed keys
      * @throws NullPointerException if the specified collection is null
      */
-    public LinkedHashSet(Collection<? extends E> c) {
-        super(Math.max(2*c.size(), 11), .75f, true);
+    public LinkedHashSet(Collection<? extends E> c, Hasher<E> hs) {
+        super(Math.max(2*c.size(), 11), .75f, true, hs);
         addAll(c);
-    }
-
-    /**
-     * Creates a <em><a href="Spliterator.html#binding">late-binding</a></em>
-     * and <em>fail-fast</em> {@code Spliterator} over the elements in this set.
-     *
-     * <p>The {@code Spliterator} reports {@link Spliterator#SIZED},
-     * {@link Spliterator#DISTINCT}, and {@code ORDERED}.  Implementations
-     * should document the reporting of additional characteristic values.
-     *
-     * @implNote
-     * The implementation creates a
-     * <em><a href="Spliterator.html#binding">late-binding</a></em> spliterator
-     * from the set's {@code Iterator}.  The spliterator inherits the
-     * <em>fail-fast</em> properties of the set's iterator.
-     * The created {@code Spliterator} additionally reports
-     * {@link Spliterator#SUBSIZED}.
-     *
-     * @return a {@code Spliterator} over the elements in this set
-     * @since 1.8
-     */
-    @Override
-    public Spliterator<E> spliterator() {
-        return Spliterators.spliterator(this, Spliterator.DISTINCT | Spliterator.ORDERED);
     }
 }

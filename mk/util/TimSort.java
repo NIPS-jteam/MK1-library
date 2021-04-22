@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved.
  * Copyright 2009 Google Inc.  All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -24,7 +25,11 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
+
+import mk.lang.ManagedObject;
+import mk.lang.Math;
+import mk.lang.System;
 
 /**
  * A stable, adaptive, iterative mergesort that requires far fewer than
@@ -153,8 +158,7 @@ class TimSort<T> {
             len >>> 1 : INITIAL_TMP_STORAGE_LENGTH;
         if (work == null || workLen < tlen || workBase + tlen > work.length) {
             @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            T[] newArray = (T[])java.lang.reflect.Array.newInstance
-                (a.getClass().getComponentType(), tlen);
+            T[] newArray = (T[]) new ManagedObject[tlen];
             tmp = newArray;
             tmpBase = 0;
             tmpLen = tlen;
@@ -207,8 +211,8 @@ class TimSort<T> {
      * @param workLen usable size of work array
      * @since 1.8
      */
-    static <T> void sort(T[] a, int lo, int hi, Comparator<? super T> c,
-                         T[] work, int workBase, int workLen) {
+    static <T extends ManagedObject> void sort(T[] a, int lo, int hi, Comparator<? super T> c,
+                                               T[] work, int workBase, int workLen) {
         assert c != null && a != null && lo >= 0 && lo <= hi && hi <= a.length;
 
         int nRemaining  = hi - lo;
@@ -344,7 +348,7 @@ class TimSort<T> {
      * @return  the length of the run beginning at the specified position in
      *          the specified array
      */
-    private static <T> int countRunAndMakeAscending(T[] a, int lo, int hi,
+    private static <T extends ManagedObject> int countRunAndMakeAscending(T[] a, int lo, int hi,
                                                     Comparator<? super T> c) {
         assert lo < hi;
         int runHi = lo + 1;
@@ -371,10 +375,10 @@ class TimSort<T> {
      * @param lo the index of the first element in the range to be reversed
      * @param hi the index after the last element in the range to be reversed
      */
-    private static void reverseRange(Object[] a, int lo, int hi) {
+    private static void reverseRange(ManagedObject[] a, int lo, int hi) {
         hi--;
         while (lo < hi) {
-            Object t = a[lo];
+            ManagedObject t = a[lo];
             a[lo++] = a[hi];
             a[hi--] = t;
         }
@@ -930,8 +934,7 @@ class TimSort<T> {
                 newSize = Math.min(newSize, a.length >>> 1);
 
             @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            T[] newArray = (T[])java.lang.reflect.Array.newInstance
-                (a.getClass().getComponentType(), newSize);
+            T[] newArray = (T[]) new ManagedObject[newSize];
             tmp = newArray;
             tmpLen = newSize;
             tmpBase = 0;

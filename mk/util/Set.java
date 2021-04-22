@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1997, 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,7 +24,10 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
+
+import mk.lang.Equality;
+import mk.lang.ManagedObject;
 
 /**
  * A collection that contains no duplicate elements.  More formally, sets
@@ -63,33 +67,6 @@ package java.util;
  * Such exceptions are marked as "optional" in the specification for this
  * interface.
  *
- * <h2><a id="immutable">Immutable Set Static Factory Methods</a></h2>
- * <p>The {@link Set#of(Object...) Set.of()} static factory methods
- * provide a convenient way to create immutable sets. The {@code Set}
- * instances created by these methods have the following characteristics:
- *
- * <ul>
- * <li>They are <em>structurally immutable</em>. Elements cannot be added or
- * removed. Calling any mutator method will always cause
- * {@code UnsupportedOperationException} to be thrown.
- * However, if the contained elements are themselves mutable, this may cause the
- * Set to behave inconsistently or its contents to appear to change.
- * <li>They disallow {@code null} elements. Attempts to create them with
- * {@code null} elements result in {@code NullPointerException}.
- * <li>They are serializable if all elements are serializable.
- * <li>They reject duplicate elements at creation time. Duplicate elements
- * passed to a static factory method result in {@code IllegalArgumentException}.
- * <li>The iteration order of set elements is unspecified and is subject to change.
- * <li>They are <a href="../lang/doc-files/ValueBased.html">value-based</a>.
- * Callers should make no assumptions about the identity of the returned instances.
- * Factories are free to create new instances or reuse existing ones. Therefore,
- * identity-sensitive operations on these instances (reference equality ({@code ==}),
- * identity hash code, and synchronization) are unreliable and should be avoided.
- * <li>They are serialized as specified on the
- * <a href="{@docRoot}/serialized-form.html#java.util.CollSer">Serialized Form</a>
- * page.
- * </ul>
- *
  * <p>This interface is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
@@ -104,12 +81,12 @@ package java.util;
  * @see HashSet
  * @see TreeSet
  * @see AbstractSet
- * @see Collections#singleton(java.lang.Object)
- * @see Collections#EMPTY_SET
+ * @see Collections#singleton(ManagedObject, mk.lang.Equality)
+ * @see Collections#emptySet()
  * @since 1.2
  */
 
-public interface Set<E> extends Collection<E> {
+public interface Set<E extends ManagedObject> extends Collection<E> {
     // Query Operations
 
     /**
@@ -132,7 +109,7 @@ public interface Set<E> extends Collection<E> {
      * Returns {@code true} if this set contains the specified element.
      * More formally, returns {@code true} if and only if this set
      * contains an element {@code e} such that
-     * {@code Objects.equals(o, e)}.
+     * {@code Hasher.equals(o, e)}.
      *
      * @param o element whose presence in this set is to be tested
      * @return {@code true} if this set contains the specified element
@@ -143,7 +120,7 @@ public interface Set<E> extends Collection<E> {
      *         set does not permit null elements
      * (<a href="Collection.html#optional-restrictions">optional</a>)
      */
-    boolean contains(Object o);
+    boolean contains(E o);
 
     /**
      * Returns an iterator over the elements in this set.  The elements are
@@ -170,52 +147,7 @@ public interface Set<E> extends Collection<E> {
      *
      * @return an array containing all the elements in this set
      */
-    Object[] toArray();
-
-    /**
-     * Returns an array containing all of the elements in this set; the
-     * runtime type of the returned array is that of the specified array.
-     * If the set fits in the specified array, it is returned therein.
-     * Otherwise, a new array is allocated with the runtime type of the
-     * specified array and the size of this set.
-     *
-     * <p>If this set fits in the specified array with room to spare
-     * (i.e., the array has more elements than this set), the element in
-     * the array immediately following the end of the set is set to
-     * {@code null}.  (This is useful in determining the length of this
-     * set <i>only</i> if the caller knows that this set does not contain
-     * any null elements.)
-     *
-     * <p>If this set makes any guarantees as to what order its elements
-     * are returned by its iterator, this method must return the elements
-     * in the same order.
-     *
-     * <p>Like the {@link #toArray()} method, this method acts as bridge between
-     * array-based and collection-based APIs.  Further, this method allows
-     * precise control over the runtime type of the output array, and may,
-     * under certain circumstances, be used to save allocation costs.
-     *
-     * <p>Suppose {@code x} is a set known to contain only strings.
-     * The following code can be used to dump the set into a newly allocated
-     * array of {@code String}:
-     *
-     * <pre>
-     *     String[] y = x.toArray(new String[0]);</pre>
-     *
-     * Note that {@code toArray(new Object[0])} is identical in function to
-     * {@code toArray()}.
-     *
-     * @param a the array into which the elements of this set are to be
-     *        stored, if it is big enough; otherwise, a new array of the same
-     *        runtime type is allocated for this purpose.
-     * @return an array containing all the elements in this set
-     * @throws ArrayStoreException if the runtime type of the specified array
-     *         is not a supertype of the runtime type of every element in this
-     *         set
-     * @throws NullPointerException if the specified array is null
-     */
-    <T> T[] toArray(T[] a);
-
+    ManagedObject[] toArray();
 
     // Modification Operations
 
@@ -224,7 +156,7 @@ public interface Set<E> extends Collection<E> {
      * (optional operation).  More formally, adds the specified element
      * {@code e} to this set if the set contains no element {@code e2}
      * such that
-     * {@code Objects.equals(e, e2)}.
+     * {@code Hasher.equals(e, e2)}.
      * If this set already contains the element, the call leaves the set
      * unchanged and returns {@code false}.  In combination with the
      * restriction on constructors, this ensures that sets never contain
@@ -256,7 +188,7 @@ public interface Set<E> extends Collection<E> {
      * Removes the specified element from this set if it is present
      * (optional operation).  More formally, removes an element {@code e}
      * such that
-     * {@code Objects.equals(o, e)}, if
+     * {@code Hasher.equals(o, e)}, if
      * this set contains such an element.  Returns {@code true} if this set
      * contained the element (or equivalently, if this set changed as a
      * result of the call).  (This set will not contain the element once the
@@ -273,7 +205,7 @@ public interface Set<E> extends Collection<E> {
      * @throws UnsupportedOperationException if the {@code remove} operation
      *         is not supported by this set
      */
-    boolean remove(Object o);
+    boolean remove(E o);
 
 
     // Bulk Operations
@@ -295,9 +227,9 @@ public interface Set<E> extends Collection<E> {
      *         elements
      * (<a href="Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
-     * @see    #contains(Object)
+     * @see    #contains(E)
      */
-    boolean containsAll(Collection<?> c);
+    boolean containsAll(Collection<? extends E> c);
 
     /**
      * Adds all of the elements in the specified collection to this set if
@@ -319,7 +251,7 @@ public interface Set<E> extends Collection<E> {
      *         elements, or if the specified collection is null
      * @throws IllegalArgumentException if some property of an element of the
      *         specified collection prevents it from being added to this set
-     * @see #add(Object)
+     * @see #add(E)
      */
     boolean addAll(Collection<? extends E> c);
 
@@ -344,7 +276,7 @@ public interface Set<E> extends Collection<E> {
      *         or if the specified collection is null
      * @see #remove(Object)
      */
-    boolean retainAll(Collection<?> c);
+    boolean retainAll(Collection<E> c);
 
     /**
      * Removes from this set all of its elements that are contained in the
@@ -364,10 +296,10 @@ public interface Set<E> extends Collection<E> {
      *         specified collection does not permit null elements
      *         (<a href="Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
-     * @see #remove(Object)
-     * @see #contains(Object)
+     * @see #remove(E)
+     * @see #contains(E)
      */
-    boolean removeAll(Collection<?> c);
+    boolean removeAll(Collection<E> c);
 
     /**
      * Removes all of the elements from this set (optional operation).
@@ -377,327 +309,4 @@ public interface Set<E> extends Collection<E> {
      *         is not supported by this set
      */
     void clear();
-
-
-    // Comparison and hashing
-
-    /**
-     * Compares the specified object with this set for equality.  Returns
-     * {@code true} if the specified object is also a set, the two sets
-     * have the same size, and every member of the specified set is
-     * contained in this set (or equivalently, every member of this set is
-     * contained in the specified set).  This definition ensures that the
-     * equals method works properly across different implementations of the
-     * set interface.
-     *
-     * @param o object to be compared for equality with this set
-     * @return {@code true} if the specified object is equal to this set
-     */
-    boolean equals(Object o);
-
-    /**
-     * Returns the hash code value for this set.  The hash code of a set is
-     * defined to be the sum of the hash codes of the elements in the set,
-     * where the hash code of a {@code null} element is defined to be zero.
-     * This ensures that {@code s1.equals(s2)} implies that
-     * {@code s1.hashCode()==s2.hashCode()} for any two sets {@code s1}
-     * and {@code s2}, as required by the general contract of
-     * {@link Object#hashCode}.
-     *
-     * @return the hash code value for this set
-     * @see Object#equals(Object)
-     * @see Set#equals(Object)
-     */
-    int hashCode();
-
-    /**
-     * Creates a {@code Spliterator} over the elements in this set.
-     *
-     * <p>The {@code Spliterator} reports {@link Spliterator#DISTINCT}.
-     * Implementations should document the reporting of additional
-     * characteristic values.
-     *
-     * @implSpec
-     * The default implementation creates a
-     * <em><a href="Spliterator.html#binding">late-binding</a></em> spliterator
-     * from the set's {@code Iterator}.  The spliterator inherits the
-     * <em>fail-fast</em> properties of the set's iterator.
-     * <p>
-     * The created {@code Spliterator} additionally reports
-     * {@link Spliterator#SIZED}.
-     *
-     * @implNote
-     * The created {@code Spliterator} additionally reports
-     * {@link Spliterator#SUBSIZED}.
-     *
-     * @return a {@code Spliterator} over the elements in this set
-     * @since 1.8
-     */
-    @Override
-    default Spliterator<E> spliterator() {
-        return Spliterators.spliterator(this, Spliterator.DISTINCT);
-    }
-
-    /**
-     * Returns an immutable set containing zero elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @return an empty {@code Set}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of() {
-        return ImmutableCollections.Set0.instance();
-    }
-
-    /**
-     * Returns an immutable set containing one element.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the single element
-     * @return a {@code Set} containing the specified element
-     * @throws NullPointerException if the element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1) {
-        return new ImmutableCollections.Set1<>(e1);
-    }
-
-    /**
-     * Returns an immutable set containing two elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if the elements are duplicates
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2) {
-        return new ImmutableCollections.Set2<>(e1, e2);
-    }
-
-    /**
-     * Returns an immutable set containing three elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2, E e3) {
-        return new ImmutableCollections.SetN<>(e1, e2, e3);
-    }
-
-    /**
-     * Returns an immutable set containing four elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2, E e3, E e4) {
-        return new ImmutableCollections.SetN<>(e1, e2, e3, e4);
-    }
-
-    /**
-     * Returns an immutable set containing five elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2, E e3, E e4, E e5) {
-        return new ImmutableCollections.SetN<>(e1, e2, e3, e4, e5);
-    }
-
-    /**
-     * Returns an immutable set containing six elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2, E e3, E e4, E e5, E e6) {
-        return new ImmutableCollections.SetN<>(e1, e2, e3, e4, e5,
-                                               e6);
-    }
-
-    /**
-     * Returns an immutable set containing seven elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @param e7 the seventh element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7) {
-        return new ImmutableCollections.SetN<>(e1, e2, e3, e4, e5,
-                                               e6, e7);
-    }
-
-    /**
-     * Returns an immutable set containing eight elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @param e7 the seventh element
-     * @param e8 the eighth element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8) {
-        return new ImmutableCollections.SetN<>(e1, e2, e3, e4, e5,
-                                               e6, e7, e8);
-    }
-
-    /**
-     * Returns an immutable set containing nine elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @param e7 the seventh element
-     * @param e8 the eighth element
-     * @param e9 the ninth element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9) {
-        return new ImmutableCollections.SetN<>(e1, e2, e3, e4, e5,
-                                               e6, e7, e8, e9);
-    }
-
-    /**
-     * Returns an immutable set containing ten elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param e3 the third element
-     * @param e4 the fourth element
-     * @param e5 the fifth element
-     * @param e6 the sixth element
-     * @param e7 the seventh element
-     * @param e8 the eighth element
-     * @param e9 the ninth element
-     * @param e10 the tenth element
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null}
-     *
-     * @since 9
-     */
-    static <E> Set<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9, E e10) {
-        return new ImmutableCollections.SetN<>(e1, e2, e3, e4, e5,
-                                               e6, e7, e8, e9, e10);
-    }
-
-    /**
-     * Returns an immutable set containing an arbitrary number of elements.
-     * See <a href="#immutable">Immutable Set Static Factory Methods</a> for details.
-     *
-     * @apiNote
-     * This method also accepts a single array as an argument. The element type of
-     * the resulting set will be the component type of the array, and the size of
-     * the set will be equal to the length of the array. To create a set with
-     * a single element that is an array, do the following:
-     *
-     * <pre>{@code
-     *     String[] array = ... ;
-     *     Set<String[]> list = Set.<String[]>of(array);
-     * }</pre>
-     *
-     * This will cause the {@link Set#of(Object) Set.of(E)} method
-     * to be invoked instead.
-     *
-     * @param <E> the {@code Set}'s element type
-     * @param elements the elements to be contained in the set
-     * @return a {@code Set} containing the specified elements
-     * @throws IllegalArgumentException if there are any duplicate elements
-     * @throws NullPointerException if an element is {@code null} or if the array is {@code null}
-     *
-     * @since 9
-     */
-    @SafeVarargs
-    @SuppressWarnings("varargs")
-    static <E> Set<E> of(E... elements) {
-        switch (elements.length) { // implicit null check of elements
-            case 0:
-                return ImmutableCollections.Set0.instance();
-            case 1:
-                return new ImmutableCollections.Set1<>(elements[0]);
-            case 2:
-                return new ImmutableCollections.Set2<>(elements[0], elements[1]);
-            default:
-                return new ImmutableCollections.SetN<>(elements);
-        }
-    }
 }

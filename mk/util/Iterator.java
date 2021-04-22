@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,13 +24,13 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
 
-import java.util.function.Consumer;
+import mk.lang.ManagedObject;
 
 /**
  * An iterator over a collection.  {@code Iterator} takes the place of
- * {@link Enumeration} in the Java Collections Framework.  Iterators
+ * Enumeration in the Java Collections Framework.  Iterators
  * differ from enumerations in two ways:
  *
  * <ul>
@@ -51,7 +52,7 @@ import java.util.function.Consumer;
  * @see Iterable
  * @since 1.2
  */
-public interface Iterator<E> {
+public interface Iterator<E extends ManagedObject> {
     /**
      * Returns {@code true} if the iteration has more elements.
      * (In other words, returns {@code true} if {@link #next} would
@@ -91,28 +92,5 @@ public interface Iterator<E> {
      */
     default void remove() {
         throw new UnsupportedOperationException("remove");
-    }
-
-    /**
-     * Performs the given action for each remaining element until all elements
-     * have been processed or the action throws an exception.  Actions are
-     * performed in the order of iteration, if that order is specified.
-     * Exceptions thrown by the action are relayed to the caller.
-     *
-     * @implSpec
-     * <p>The default implementation behaves as if:
-     * <pre>{@code
-     *     while (hasNext())
-     *         action.accept(next());
-     * }</pre>
-     *
-     * @param action The action to be performed for each element
-     * @throws NullPointerException if the specified action is null
-     * @since 1.8
-     */
-    default void forEachRemaining(Consumer<? super E> action) {
-        Objects.requireNonNull(action);
-        while (hasNext())
-            action.accept(next());
     }
 }

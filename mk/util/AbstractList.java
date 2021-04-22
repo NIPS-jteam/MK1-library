@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1997, 2016, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,26 +24,25 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
 
-import java.util.function.Consumer;
+import mk.lang.Equality;
+import mk.lang.ManagedObject;
 
 /**
  * This class provides a skeletal implementation of the {@link List}
  * interface to minimize the effort required to implement this interface
- * backed by a "random access" data store (such as an array).  For sequential
- * access data (such as a linked list), {@link AbstractSequentialList} should
- * be used in preference to this class.
+ * backed by a "random access" data store (such as an array).
  *
  * <p>To implement an unmodifiable list, the programmer needs only to extend
  * this class and provide implementations for the {@link #get(int)} and
  * {@link List#size() size()} methods.
  *
  * <p>To implement a modifiable list, the programmer must additionally
- * override the {@link #set(int, Object) set(int, E)} method (which otherwise
+ * override the {@link #set(int, ManagedObject) set(int, E)} method (which otherwise
  * throws an {@code UnsupportedOperationException}).  If the list is
  * variable-size the programmer must additionally override the
- * {@link #add(int, Object) add(int, E)} and {@link #remove(int)} methods.
+ * {@link #add(int, ManagedObject) add(int, E)} and {@link #remove(int)} methods.
  *
  * <p>The programmer should generally provide a void (no argument) and collection
  * constructor, as per the recommendation in the {@link Collection} interface
@@ -53,8 +53,8 @@ import java.util.function.Consumer;
  * list iterator are implemented by this class, on top of the "random access"
  * methods:
  * {@link #get(int)},
- * {@link #set(int, Object) set(int, E)},
- * {@link #add(int, Object) add(int, E)} and
+ * {@link #set(int, ManagedObject) set(int, E)},
+ * {@link #add(int, ManagedObject) add(int, E)} and
  * {@link #remove(int)}.
  *
  * <p>The documentation for each non-abstract method in this class describes its
@@ -70,12 +70,14 @@ import java.util.function.Consumer;
  * @since 1.2
  */
 
-public abstract class AbstractList<E> extends AbstractCollection<E> implements List<E> {
+public abstract class AbstractList<E extends ManagedObject> extends AbstractCollection<E> implements List<E> {
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
+     * @param  eq         the object with the implementation of external comparison
      */
-    protected AbstractList() {
+    protected AbstractList(Equality<E> eq) {
+        super(eq);
     }
 
     /**
@@ -94,7 +96,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      *
      * <p>Note that this implementation throws an
      * {@code UnsupportedOperationException} unless
-     * {@link #add(int, Object) add(int, E)} is overridden.
+     * {@link #add(int, ManagedObject) add(int, E)} is overridden.
      *
      * @param e element to be appended to this list
      * @return {@code true} (as specified by {@link Collection#add})
@@ -181,7 +183,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public int indexOf(Object o) {
+    public int indexOf(E o) {
         ListIterator<E> it = listIterator();
         if (o==null) {
             while (it.hasNext())
@@ -189,7 +191,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
                     return it.previousIndex();
         } else {
             while (it.hasNext())
-                if (o.equals(it.next()))
+                if (eq.equals((E) o, it.next()))
                     return it.previousIndex();
         }
         return -1;
@@ -207,7 +209,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public int lastIndexOf(Object o) {
+    public int lastIndexOf(E o) {
         ListIterator<E> it = listIterator(size());
         if (o==null) {
             while (it.hasPrevious())
@@ -215,7 +217,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
                     return it.nextIndex();
         } else {
             while (it.hasPrevious())
-                if (o.equals(it.previous()))
+                if (eq.equals(o, it.previous()))
                     return it.nextIndex();
         }
         return -1;
@@ -255,7 +257,12 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      *
      * <p>Note that this implementation throws an
      * {@code UnsupportedOperationException} unless
-     * {@link #add(int, Object) add(int, E)} is overridden.
+     * {@link #add(int, ManagedObject) add(int, E)} is overridden.
+     *
+     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
+     *       iterate through collection with iterator instead of initial
+     *       for (E e : c) {
+     *           add(index++, e);
      *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
@@ -266,8 +273,8 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
     public boolean addAll(int index, Collection<? extends E> c) {
         rangeCheckForAdd(index);
         boolean modified = false;
-        for (E e : c) {
-            add(index++, e);
+        for (Iterator<E> it = (Iterator<E>) c.iterator(); it.hasNext(); ) {
+            add(index++, it.next());
             modified = true;
         }
         return modified;
@@ -496,8 +503,8 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
     public List<E> subList(int fromIndex, int toIndex) {
         subListRangeCheck(fromIndex, toIndex, size());
         return (this instanceof RandomAccess ?
-                new RandomAccessSubList<>(this, fromIndex, toIndex) :
-                new SubList<>(this, fromIndex, toIndex));
+                new RandomAccessSubList<>(this, fromIndex, toIndex, eq) :
+                new SubList<>(this, fromIndex, toIndex, eq));
     }
 
     static void subListRangeCheck(int fromIndex, int toIndex, int size) {
@@ -511,62 +518,6 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
     }
 
     // Comparison and hashing
-
-    /**
-     * Compares the specified object with this list for equality.  Returns
-     * {@code true} if and only if the specified object is also a list, both
-     * lists have the same size, and all corresponding pairs of elements in
-     * the two lists are <i>equal</i>.  (Two elements {@code e1} and
-     * {@code e2} are <i>equal</i> if {@code (e1==null ? e2==null :
-     * e1.equals(e2))}.)  In other words, two lists are defined to be
-     * equal if they contain the same elements in the same order.
-     *
-     * @implSpec
-     * This implementation first checks if the specified object is this
-     * list. If so, it returns {@code true}; if not, it checks if the
-     * specified object is a list. If not, it returns {@code false}; if so,
-     * it iterates over both lists, comparing corresponding pairs of elements.
-     * If any comparison returns {@code false}, this method returns
-     * {@code false}.  If either iterator runs out of elements before the
-     * other it returns {@code false} (as the lists are of unequal length);
-     * otherwise it returns {@code true} when the iterations complete.
-     *
-     * @param o the object to be compared for equality with this list
-     * @return {@code true} if the specified object is equal to this list
-     */
-    public boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (!(o instanceof List))
-            return false;
-
-        ListIterator<E> e1 = listIterator();
-        ListIterator<?> e2 = ((List<?>) o).listIterator();
-        while (e1.hasNext() && e2.hasNext()) {
-            E o1 = e1.next();
-            Object o2 = e2.next();
-            if (!(o1==null ? o2==null : o1.equals(o2)))
-                return false;
-        }
-        return !(e1.hasNext() || e2.hasNext());
-    }
-
-    /**
-     * Returns the hash code value for this list.
-     *
-     * @implSpec
-     * This implementation uses exactly the code that is used to define the
-     * list hash function in the documentation for the {@link List#hashCode}
-     * method.
-     *
-     * @return the hash code value for this list
-     */
-    public int hashCode() {
-        int hashCode = 1;
-        for (E e : this)
-            hashCode = 31*hashCode + (e==null ? 0 : e.hashCode());
-        return hashCode;
-    }
 
     /**
      * Removes from this list all of the elements whose index is between
@@ -636,116 +587,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
         return "Index: "+index+", Size: "+size();
     }
 
-    /**
-     * An index-based split-by-two, lazily initialized Spliterator covering
-     * a List that access elements via {@link List#get}.
-     *
-     * If access results in an IndexOutOfBoundsException then a
-     * ConcurrentModificationException is thrown instead (since the list has
-     * been structurally modified while traversing).
-     *
-     * If the List is an instance of AbstractList then concurrent modification
-     * checking is performed using the AbstractList's modCount field.
-     */
-    static final class RandomAccessSpliterator<E> implements Spliterator<E> {
-
-        private final List<E> list;
-        private int index; // current index, modified on advance/split
-        private int fence; // -1 until used; then one past last index
-
-        // The following fields are valid if covering an AbstractList
-        private final AbstractList<E> alist;
-        private int expectedModCount; // initialized when fence set
-
-        RandomAccessSpliterator(List<E> list) {
-            assert list instanceof RandomAccess;
-
-            this.list = list;
-            this.index = 0;
-            this.fence = -1;
-
-            this.alist = list instanceof AbstractList ? (AbstractList<E>) list : null;
-            this.expectedModCount = alist != null ? alist.modCount : 0;
-        }
-
-        /** Create new spliterator covering the given  range */
-        private RandomAccessSpliterator(RandomAccessSpliterator<E> parent,
-                                int origin, int fence) {
-            this.list = parent.list;
-            this.index = origin;
-            this.fence = fence;
-
-            this.alist = parent.alist;
-            this.expectedModCount = parent.expectedModCount;
-        }
-
-        private int getFence() { // initialize fence to size on first use
-            int hi;
-            List<E> lst = list;
-            if ((hi = fence) < 0) {
-                if (alist != null) {
-                    expectedModCount = alist.modCount;
-                }
-                hi = fence = lst.size();
-            }
-            return hi;
-        }
-
-        public Spliterator<E> trySplit() {
-            int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
-            return (lo >= mid) ? null : // divide range in half unless too small
-                    new RandomAccessSpliterator<>(this, lo, index = mid);
-        }
-
-        public boolean tryAdvance(Consumer<? super E> action) {
-            if (action == null)
-                throw new NullPointerException();
-            int hi = getFence(), i = index;
-            if (i < hi) {
-                index = i + 1;
-                action.accept(get(list, i));
-                checkAbstractListModCount(alist, expectedModCount);
-                return true;
-            }
-            return false;
-        }
-
-        public void forEachRemaining(Consumer<? super E> action) {
-            Objects.requireNonNull(action);
-            List<E> lst = list;
-            int hi = getFence();
-            int i = index;
-            index = hi;
-            for (; i < hi; i++) {
-                action.accept(get(lst, i));
-            }
-            checkAbstractListModCount(alist, expectedModCount);
-        }
-
-        public long estimateSize() {
-            return (long) (getFence() - index);
-        }
-
-        public int characteristics() {
-            return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
-        }
-
-        private static <E> E get(List<E> list, int i) {
-            try {
-                return list.get(i);
-            } catch (IndexOutOfBoundsException ex) {
-                throw new ConcurrentModificationException();
-            }
-        }
-
-        static void checkAbstractListModCount(AbstractList<?> alist, int expectedModCount) {
-            if (alist != null && alist.modCount != expectedModCount) {
-                throw new ConcurrentModificationException();
-            }
-        }
-    }
-
-    private static class SubList<E> extends AbstractList<E> {
+    private static class SubList<E extends ManagedObject> extends AbstractList<E> {
         private final AbstractList<E> root;
         private final SubList<E> parent;
         private final int offset;
@@ -755,7 +597,8 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
          * Constructs a sublist of an arbitrary AbstractList, which is
          * not a SubList itself.
          */
-        public SubList(AbstractList<E> root, int fromIndex, int toIndex) {
+        public SubList(AbstractList<E> root, int fromIndex, int toIndex, Equality<E> eq) {
+            super(eq);
             this.root = root;
             this.parent = null;
             this.offset = fromIndex;
@@ -766,7 +609,8 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
         /**
          * Constructs a sublist of another SubList.
          */
-        protected SubList(SubList<E> parent, int fromIndex, int toIndex) {
+        protected SubList(SubList<E> parent, int fromIndex, int toIndex, Equality<E> eq) {
+            super(eq);
             this.root = parent.root;
             this.parent = parent;
             this.offset = parent.offset + fromIndex;
@@ -887,7 +731,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
 
         public List<E> subList(int fromIndex, int toIndex) {
             subListRangeCheck(fromIndex, toIndex, size);
-            return new SubList<>(this, fromIndex, toIndex);
+            return new SubList<>(this, fromIndex, toIndex, eq);
         }
 
         private void rangeCheckForAdd(int index) {
@@ -914,7 +758,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
         }
     }
 
-    private static class RandomAccessSubList<E>
+    private static class RandomAccessSubList<E extends ManagedObject>
             extends SubList<E> implements RandomAccess {
 
         /**
@@ -922,21 +766,30 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
          * not a RandomAccessSubList itself.
          */
         RandomAccessSubList(AbstractList<E> root,
-                int fromIndex, int toIndex) {
-            super(root, fromIndex, toIndex);
+                int fromIndex, int toIndex, Equality<E> eq) {
+            super(root, fromIndex, toIndex, eq);
         }
 
         /**
          * Constructs a sublist of another RandomAccessSubList.
          */
         RandomAccessSubList(RandomAccessSubList<E> parent,
-                int fromIndex, int toIndex) {
-            super(parent, fromIndex, toIndex);
+                int fromIndex, int toIndex, Equality<E> eq) {
+            super(parent, fromIndex, toIndex, eq);
         }
 
         public List<E> subList(int fromIndex, int toIndex) {
             subListRangeCheck(fromIndex, toIndex, size);
-            return new RandomAccessSubList<>(this, fromIndex, toIndex);
+            return new RandomAccessSubList<>(this, fromIndex, toIndex, eq);
         }
+    }
+
+    /**
+     * Returns external implementation of object comparison.
+     * @return Equality object of super class.
+     */
+    @Override
+    public Equality<E> getEquality() {
+        return eq;
     }
 }

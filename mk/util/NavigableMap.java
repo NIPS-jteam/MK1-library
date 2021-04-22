@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,7 +34,9 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package java.util;
+package mk.util;
+
+import mk.lang.ManagedObject;
 
 // BEGIN android-note
 // removed link to collections framework docs
@@ -57,9 +60,9 @@ package java.util;
  * and directional methods inverted. The performance of ascending
  * operations and views is likely to be faster than that of descending
  * ones.  Methods
- * {@link #subMap(Object, boolean, Object, boolean) subMap(K, boolean, K, boolean)},
- * {@link #headMap(Object, boolean) headMap(K, boolean)}, and
- * {@link #tailMap(Object, boolean) tailMap(K, boolean)}
+ * {@link #subMap(ManagedObject, boolean, ManagedObject, boolean) subMap(K, boolean, K, boolean)},
+ * {@link #headMap(ManagedObject, boolean) headMap(K, boolean)}, and
+ * {@link #tailMap(ManagedObject, boolean) tailMap(K, boolean)}
  * differ from the like-named {@code SortedMap} methods in accepting
  * additional arguments describing whether lower and upper bounds are
  * inclusive versus exclusive.  Submaps of any {@code NavigableMap}
@@ -78,9 +81,9 @@ package java.util;
  * method {@code put}.
  *
  * <p>Methods
- * {@link #subMap(Object, Object) subMap(K, K)},
- * {@link #headMap(Object) headMap(K)}, and
- * {@link #tailMap(Object) tailMap(K)}
+ * {@link #subMap(ManagedObject, ManagedObject) subMap(K, K)},
+ * {@link #headMap(ManagedObject) headMap(K)}, and
+ * {@link #tailMap(ManagedObject) tailMap(K)}
  * are specified to return {@code SortedMap} to allow existing
  * implementations of {@code SortedMap} to be compatibly retrofitted to
  * implement {@code NavigableMap}, but extensions and implementations
@@ -94,7 +97,7 @@ package java.util;
  * @param <V> the type of mapped values
  * @since 1.6
  */
-public interface NavigableMap<K,V> extends SortedMap<K,V> {
+public interface NavigableMap<K extends ManagedObject,V extends ManagedObject> extends SortedMap<K,V> {
     /**
      * Returns a key-value mapping associated with the greatest key
      * strictly less than the given key, or {@code null} if there is
@@ -349,8 +352,7 @@ public interface NavigableMap<K,V> extends SortedMap<K,V> {
      * @return a view of the portion of this map whose keys are less than
      *         (or equal to, if {@code inclusive} is true) {@code toKey}
      * @throws ClassCastException if {@code toKey} is not compatible
-     *         with this map's comparator (or, if the map has no comparator,
-     *         if {@code toKey} does not implement {@link Comparable}).
+     *         with this map's comparator.
      *         Implementations may, but are not required to, throw this
      *         exception if {@code toKey} cannot be compared to keys
      *         currently in the map.
@@ -378,8 +380,7 @@ public interface NavigableMap<K,V> extends SortedMap<K,V> {
      * @return a view of the portion of this map whose keys are greater than
      *         (or equal to, if {@code inclusive} is true) {@code fromKey}
      * @throws ClassCastException if {@code fromKey} is not compatible
-     *         with this map's comparator (or, if the map has no comparator,
-     *         if {@code fromKey} does not implement {@link Comparable}).
+     *         with this map's comparator.
      *         Implementations may, but are not required to, throw this
      *         exception if {@code fromKey} cannot be compared to keys
      *         currently in the map.

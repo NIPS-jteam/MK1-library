@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,7 +24,7 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
 
 /**
  * This exception may be thrown by methods that have detected concurrent
@@ -57,19 +58,13 @@ package java.util;
  * @author  Josh Bloch
  * @see     Collection
  * @see     Iterator
- * @see     Spliterator
  * @see     ListIterator
- * @see     Vector
- * @see     LinkedList
  * @see     HashSet
- * @see     Hashtable
  * @see     TreeMap
  * @see     AbstractList
  * @since   1.2
  */
 public class ConcurrentModificationException extends RuntimeException {
-    private static final long serialVersionUID = -3666751008965953603L;
-
     /**
      * Constructs a ConcurrentModificationException with no
      * detail message.

@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (c) 1998, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,7 +24,9 @@
  * questions.
  */
 
-package java.util;
+package mk.util;
+
+import mk.lang.ManagedObject;
 
 /**
  * A {@link Map} that further provides a <em>total ordering</em> on its keys.
@@ -35,10 +38,10 @@ package java.util;
  * Several additional operations are provided to take advantage of the
  * ordering.  (This interface is the map analogue of {@link SortedSet}.)
  *
- * <p>All keys inserted into a sorted map must implement the {@code Comparable}
- * interface (or be accepted by the specified comparator).  Furthermore, all
- * such keys must be <em>mutually comparable</em>: {@code k1.compareTo(k2)} (or
- * {@code comparator.compare(k1, k2)}) must not throw a
+ * <p>All keys inserted into a sorted map must be accepted by the specified
+ * comparator).
+ * Furthermore, all such keys must be {@code comparator.compare(k1, k2)}
+ * must not throw a
  * {@code ClassCastException} for any keys {@code k1} and {@code k2} in
  * the sorted map.  Attempts to violate this restriction will cause the
  * offending method or constructor invocation to throw a
@@ -46,30 +49,25 @@ package java.util;
  *
  * <p>Note that the ordering maintained by a sorted map (whether or not an
  * explicit comparator is provided) must be <em>consistent with equals</em> if
- * the sorted map is to correctly implement the {@code Map} interface.  (See
- * the {@code Comparable} interface or {@code Comparator} interface for a
- * precise definition of <em>consistent with equals</em>.)  This is so because
+ * the sorted map is to correctly implement the {@code Map} interface.
+ * See {@code Comparator} interface (abstract class) for a
+ * precise definition of <em>consistent with equals</em>.  This is so because
  * the {@code Map} interface is defined in terms of the {@code equals}
  * operation, but a sorted map performs all key comparisons using its
- * {@code compareTo} (or {@code compare}) method, so two keys that are
+ * {@code compare}) method, so two keys that are
  * deemed equal by this method are, from the standpoint of the sorted map,
  * equal.  The behavior of a tree map <em>is</em> well-defined even if its
  * ordering is inconsistent with equals; it just fails to obey the general
  * contract of the {@code Map} interface.
  *
- * <p>All general-purpose sorted map implementation classes should provide four
+ * <p>All general-purpose sorted map implementation classes should provide two
  * "standard" constructors. It is not possible to enforce this recommendation
  * though as required constructors cannot be specified by interfaces. The
  * expected "standard" constructors for all sorted map implementations are:
  * <ol>
- *   <li>A void (no arguments) constructor, which creates an empty sorted map
- *   sorted according to the natural ordering of its keys.</li>
- *   <li>A constructor with a single argument of type {@code Comparator}, which
+ *   <li>A constructor with an argument of type {@code Comparator}, which
  *   creates an empty sorted map sorted according to the specified comparator.</li>
- *   <li>A constructor with a single argument of type {@code Map}, which creates
- *   a new map with the same key-value mappings as its argument, sorted
- *   according to the keys' natural ordering.</li>
- *   <li>A constructor with a single argument of type {@code SortedMap}, which
+ *   <li>A constructor with an argument of type {@code SortedMap}, which
  *   creates a new sorted map with the same key-value mappings and the same
  *   ordering as the input sorted map.</li>
  * </ol>
@@ -104,21 +102,18 @@ package java.util;
  * @see TreeMap
  * @see SortedSet
  * @see Comparator
- * @see Comparable
  * @see Collection
  * @see ClassCastException
  * @since 1.2
  */
 
-public interface SortedMap<K,V> extends Map<K,V> {
+public interface SortedMap<K extends ManagedObject,V extends ManagedObject> extends Map<K,V> {
     /**
-     * Returns the comparator used to order the keys in this map, or
-     * {@code null} if this map uses the {@linkplain Comparable
-     * natural ordering} of its keys.
+     * Returns the comparator used to order the keys in this map.
      *
-     * @return the comparator used to order the keys in this map,
-     *         or {@code null} if this map uses the natural ordering
-     *         of its keys
+     * @return the comparator used to order the keys in this map.
+     *         A <tt>null</tt> value is not acceptable for the moment due to
+     *         natural order support removal.
      */
     Comparator<? super K> comparator();
 
@@ -167,8 +162,7 @@ public interface SortedMap<K,V> extends Map<K,V> {
      * @return a view of the portion of this map whose keys are strictly
      *         less than {@code toKey}
      * @throws ClassCastException if {@code toKey} is not compatible
-     *         with this map's comparator (or, if the map has no comparator,
-     *         if {@code toKey} does not implement {@link Comparable}).
+     *         with this map's comparator.
      *         Implementations may, but are not required to, throw this
      *         exception if {@code toKey} cannot be compared to keys
      *         currently in the map.
@@ -194,8 +188,7 @@ public interface SortedMap<K,V> extends Map<K,V> {
      * @return a view of the portion of this map whose keys are greater
      *         than or equal to {@code fromKey}
      * @throws ClassCastException if {@code fromKey} is not compatible
-     *         with this map's comparator (or, if the map has no comparator,
-     *         if {@code fromKey} does not implement {@link Comparable}).
+     *         with this map's comparator.
      *         Implementations may, but are not required to, throw this
      *         exception if {@code fromKey} cannot be compared to keys
      *         currently in the map.

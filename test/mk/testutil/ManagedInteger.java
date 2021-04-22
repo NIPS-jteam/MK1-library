@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * Copyright (C) 2014 The Android Open Source Project
  * Copyright (c) 1994, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -24,13 +25,13 @@
  * questions.
  */
 
-package java.lang;
+package mk.testutil;
 
-import java.lang.annotation.Native;
+import mk.lang.ManagedObject;
 
 /**
- * The {@code Integer} class wraps a value of the primitive type
- * {@code int} in an object. An object of type {@code Integer}
+ * The {@code ManagedInteger} class wraps a value of the primitive type
+ * {@code int} in an object. An object of type {@code ManagedInteger}
  * contains a single field whose type is {@code int}.
  *
  * <p>In addition, this class provides several methods for converting
@@ -50,27 +51,18 @@ import java.lang.annotation.Native;
  * @author  Joseph D. Darcy
  * @since JDK1.0
  */
-public final class Integer extends Number implements Comparable<Integer> {
+public class ManagedInteger extends ManagedObject {
     /**
      * A constant holding the minimum value an {@code int} can
      * have, -2<sup>31</sup>.
      */
-    @Native public static final int   MIN_VALUE = 0x80000000;
+    public static final int   MIN_VALUE = 0x80000000;
 
     /**
      * A constant holding the maximum value an {@code int} can
      * have, 2<sup>31</sup>-1.
      */
-    @Native public static final int   MAX_VALUE = 0x7fffffff;
-
-    /**
-     * The {@code Class} instance representing the primitive type
-     * {@code int}.
-     *
-     * @since   JDK1.1
-     */
-    @SuppressWarnings("unchecked")
-    public static final Class<Integer>  TYPE = (Class<Integer>) Class.getPrimitiveClass("int");
+    public static final int   MAX_VALUE = 0x7fffffff;
 
     /**
      * All possible chars for representing a number as a String
@@ -119,7 +111,7 @@ public final class Integer extends Number implements Comparable<Integer> {
      * be called on the result:
      *
      * <blockquote>
-     *  {@code Integer.toString(n, 16).toUpperCase()}
+     *  {@code ManagedInteger.toString(n, 16).toUpperCase()}
      * </blockquote>
      *
      * @param   i       an integer to be converted to a string.
@@ -200,8 +192,8 @@ public final class Integer extends Number implements Comparable<Integer> {
      *
      * <p>The value of the argument can be recovered from the returned
      * string {@code s} by calling {@link
-     * Integer#parseUnsignedInt(String, int)
-     * Integer.parseUnsignedInt(s, 16)}.
+     * ManagedInteger#parseUnsignedInt(String, int)
+     * ManagedInteger.parseUnsignedInt(s, 16)}.
      *
      * <p>If the unsigned magnitude is zero, it is represented by a
      * single zero character {@code '0'} ({@code '\u005Cu0030'});
@@ -220,7 +212,7 @@ public final class Integer extends Number implements Comparable<Integer> {
      * be called on the result:
      *
      * <blockquote>
-     *  {@code Integer.toHexString(n).toUpperCase()}
+     *  {@code ManagedInteger.toHexString(n).toUpperCase()}
      * </blockquote>
      *
      * @param   i   an integer to be converted to a string.
@@ -245,8 +237,8 @@ public final class Integer extends Number implements Comparable<Integer> {
      *
      * <p>The value of the argument can be recovered from the returned
      * string {@code s} by calling {@link
-     * Integer#parseUnsignedInt(String, int)
-     * Integer.parseUnsignedInt(s, 8)}.
+     * ManagedInteger#parseUnsignedInt(String, int)
+     * ManagedInteger.parseUnsignedInt(s, 8)}.
      *
      * <p>If the unsigned magnitude is zero, it is represented by a
      * single zero character {@code '0'} ({@code '\u005Cu0030'});
@@ -283,8 +275,8 @@ public final class Integer extends Number implements Comparable<Integer> {
      *
      * <p>The value of the argument can be recovered from the returned
      * string {@code s} by calling {@link
-     * Integer#parseUnsignedInt(String, int)
-     * Integer.parseUnsignedInt(s, 2)}.
+     * ManagedInteger#parseUnsignedInt(String, int)
+     * ManagedInteger.parseUnsignedInt(s, 2)}.
      *
      * <p>If the unsigned magnitude is zero, it is represented by a
      * single zero character {@code '0'} ({@code '\u005Cu0030'});
@@ -309,7 +301,7 @@ public final class Integer extends Number implements Comparable<Integer> {
      */
     private static String toUnsignedString0(int val, int shift) {
         // assert shift > 0 && shift <=5 : "Illegal shift value";
-        int mag = Integer.SIZE - Integer.numberOfLeadingZeros(val);
+        int mag = ManagedInteger.SIZE - ManagedInteger.numberOfLeadingZeros(val);
         int chars = Math.max(((mag + (shift - 1)) / shift), 1);
         char[] buf = new char[chars];
 
@@ -334,7 +326,7 @@ public final class Integer extends Number implements Comparable<Integer> {
         int radix = 1 << shift;
         int mask = radix - 1;
         do {
-            buf[offset + --charPos] = Integer.digits[val & mask];
+            buf[offset + --charPos] = ManagedInteger.digits[val & mask];
             val >>>= shift;
         } while (val != 0 && charPos > 0);
 
@@ -373,11 +365,11 @@ public final class Integer extends Number implements Comparable<Integer> {
         } ;
 
         // I use the "invariant division by multiplication" trick to
-        // accelerate Integer.toString.  In particular we want to
+        // accelerate ManagedInteger.toString.  In particular we want to
         // avoid division by 10.
         //
         // The "trick" has roughly the same performance characteristics
-        // as the "classic" Integer.toString code on a non-JIT VM.
+        // as the "classic" ManagedInteger.toString code on a non-JIT VM.
         // The trick avoids .rem and .div calls but has a longer code
         // path and is thus dominated by dispatch overhead.  In the
         // JIT case the dispatch overhead doesn't exist and the
@@ -402,7 +394,7 @@ public final class Integer extends Number implements Comparable<Integer> {
      * @return  a string representation of the argument in base&nbsp;10.
      */
     public static String toString(int i) {
-        if (i == Integer.MIN_VALUE)
+        if (i == ManagedInteger.MIN_VALUE)
             return "-2147483648";
 
         // BEGIN Android-changed: Cache the String for small values.
@@ -462,7 +454,7 @@ public final class Integer extends Number implements Comparable<Integer> {
      * digit at the specified index (exclusive), and working
      * backwards from there.
      *
-     * Will fail if i == Integer.MIN_VALUE
+     * Will fail if i == ManagedInteger.MIN_VALUE
      */
     static void getChars(int i, int index, char[] buf) {
         int q, r;
@@ -499,7 +491,7 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     final static int [] sizeTable = { 9, 99, 999, 9999, 99999, 999999, 9999999,
-                                      99999999, 999999999, Integer.MAX_VALUE };
+                                      99999999, 999999999, ManagedInteger.MAX_VALUE };
 
     // Requires positive x
     static int stringSize(int x) {
@@ -590,7 +582,7 @@ public final class Integer extends Number implements Comparable<Integer> {
         int result = 0;
         boolean negative = false;
         int i = 0, len = s.length();
-        int limit = -Integer.MAX_VALUE;
+        int limit = -ManagedInteger.MAX_VALUE;
         int multmin;
         int digit;
 
@@ -599,12 +591,12 @@ public final class Integer extends Number implements Comparable<Integer> {
             if (firstChar < '0') { // Possible leading "+" or "-"
                 if (firstChar == '-') {
                     negative = true;
-                    limit = Integer.MIN_VALUE;
+                    limit = ManagedInteger.MIN_VALUE;
                 } else if (firstChar != '+')
-                    throw NumberFormatException.forInputString(s);
+                    throw new NumberFormatException(s);
 
                 if (len == 1) // Cannot have lone "+" or "-"
-                    throw NumberFormatException.forInputString(s);
+                    throw new NumberFormatException(s);
                 i++;
             }
             multmin = limit / radix;
@@ -612,19 +604,19 @@ public final class Integer extends Number implements Comparable<Integer> {
                 // Accumulating negatively avoids surprises near MAX_VALUE
                 digit = Character.digit(s.charAt(i++),radix);
                 if (digit < 0) {
-                    throw NumberFormatException.forInputString(s);
+                    throw new NumberFormatException(s);
                 }
                 if (result < multmin) {
-                    throw NumberFormatException.forInputString(s);
+                    throw new NumberFormatException(s);
                 }
                 result *= radix;
                 if (result < limit + digit) {
-                    throw NumberFormatException.forInputString(s);
+                    throw new NumberFormatException(s);
                 }
                 result -= digit;
             }
         } else {
-            throw NumberFormatException.forInputString(s);
+            throw new NumberFormatException(s);
         }
         return negative ? result : -result;
     }
@@ -722,7 +714,7 @@ public final class Integer extends Number implements Comparable<Integer> {
                 }
             }
         } else {
-            throw NumberFormatException.forInputString(s);
+            throw new NumberFormatException(s);
         }
     }
 
@@ -747,58 +739,58 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     /**
-     * Returns an {@code Integer} object holding the value
+     * Returns an {@code ManagedInteger} object holding the value
      * extracted from the specified {@code String} when parsed
      * with the radix given by the second argument. The first argument
      * is interpreted as representing a signed integer in the radix
      * specified by the second argument, exactly as if the arguments
      * were given to the {@link #parseInt(java.lang.String, int)}
-     * method. The result is an {@code Integer} object that
+     * method. The result is an {@code ManagedInteger} object that
      * represents the integer value specified by the string.
      *
-     * <p>In other words, this method returns an {@code Integer}
+     * <p>In other words, this method returns an {@code ManagedInteger}
      * object equal to the value of:
      *
      * <blockquote>
-     *  {@code new Integer(Integer.parseInt(s, radix))}
+     *  {@code new ManagedInteger(ManagedInteger.parseInt(s, radix))}
      * </blockquote>
      *
      * @param      s   the string to be parsed.
      * @param      radix the radix to be used in interpreting {@code s}
-     * @return     an {@code Integer} object holding the value
+     * @return     an {@code ManagedInteger} object holding the value
      *             represented by the string argument in the specified
      *             radix.
      * @exception NumberFormatException if the {@code String}
      *            does not contain a parsable {@code int}.
      */
-    public static Integer valueOf(String s, int radix) throws NumberFormatException {
-        return Integer.valueOf(parseInt(s,radix));
+    public static ManagedInteger valueOf(String s, int radix) throws NumberFormatException {
+        return ManagedInteger.valueOf(parseInt(s,radix));
     }
 
     /**
-     * Returns an {@code Integer} object holding the
+     * Returns an {@code ManagedInteger} object holding the
      * value of the specified {@code String}. The argument is
      * interpreted as representing a signed decimal integer, exactly
      * as if the argument were given to the {@link
      * #parseInt(java.lang.String)} method. The result is an
-     * {@code Integer} object that represents the integer value
+     * {@code ManagedInteger} object that represents the integer value
      * specified by the string.
      *
-     * <p>In other words, this method returns an {@code Integer}
+     * <p>In other words, this method returns an {@code ManagedInteger}
      * object equal to the value of:
      *
      * <blockquote>
-     *  {@code new Integer(Integer.parseInt(s))}
+     *  {@code new ManagedInteger(ManagedInteger.parseInt(s))}
      * </blockquote>
      *
      * @param      s   the string to be parsed.
-     * @return     an {@code Integer} object holding the value
+     * @return     an {@code ManagedInteger} object holding the value
      *             represented by the string argument.
      * @exception  NumberFormatException  if the string cannot be parsed
      *             as an integer.
      */
-    public static Integer valueOf(String s) throws NumberFormatException {
-        return Integer.valueOf(parseInt(s, 10));
+    public static ManagedInteger valueOf(String s) throws NumberFormatException {
+        return ManagedInteger.valueOf(parseInt(s, 10));
     }
 
     /**
@@ -815,7 +807,7 @@ public final class Integer extends Number implements Comparable<Integer> {
     private static class IntegerCache {
         static final int low = -128;
         static final int high;
-        static final Integer cache[];
+        static final ManagedInteger cache[];
 
         static {
             // high value may be configured by property
@@ -826,18 +818,18 @@ public final class Integer extends Number implements Comparable<Integer> {
                 try {
                     int i = parseInt(integerCacheHighPropValue);
                     i = Math.max(i, 127);
-                    // Maximum array size is Integer.MAX_VALUE
-                    h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
+                    // Maximum array size is ManagedInteger.MAX_VALUE
+                    h = Math.min(i, ManagedInteger.MAX_VALUE - (-low) -1);
                 } catch( NumberFormatException nfe) {
                     // If the property cannot be parsed into an int, ignore it.
                 }
             }
             high = h;
 
-            cache = new Integer[(high - low) + 1];
+            cache = new ManagedInteger[(high - low) + 1];
             int j = low;
             for(int k = 0; k < cache.length; k++)
-                cache[k] = new Integer(j++);
+                cache[k] = new ManagedInteger(j++);
 
             // range [-128, 127] must be interned (JLS7 5.1.7)
             assert IntegerCache.high >= 127;
@@ -847,10 +839,10 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     /**
-     * Returns an {@code Integer} instance representing the specified
-     * {@code int} value.  If a new {@code Integer} instance is not
+     * Returns an {@code ManagedInteger} instance representing the specified
+     * {@code int} value.  If a new {@code ManagedInteger} instance is not
      * required, this method should generally be used in preference to
-     * the constructor {@link #Integer(int)}, as this method is likely
+     * the constructor {@link #ManagedInteger(int)}, as this method is likely
      * to yield significantly better space and time performance by
      * caching frequently requested values.
      *
@@ -858,52 +850,52 @@ public final class Integer extends Number implements Comparable<Integer> {
      * inclusive, and may cache other values outside of this range.
      *
      * @param  i an {@code int} value.
-     * @return an {@code Integer} instance representing {@code i}.
+     * @return an {@code ManagedInteger} instance representing {@code i}.
      * @since  1.5
      */
-    public static Integer valueOf(int i) {
+    public static ManagedInteger valueOf(int i) {
         if (i >= IntegerCache.low && i <= IntegerCache.high)
             return IntegerCache.cache[i + (-IntegerCache.low)];
-        return new Integer(i);
+        return new ManagedInteger(i);
     }
 
     /**
-     * The value of the {@code Integer}.
+     * The value of the {@code ManagedInteger}.
      *
      * @serial
      */
     private final int value;
 
     /**
-     * Constructs a newly allocated {@code Integer} object that
+     * Constructs a newly allocated {@code ManagedInteger} object that
      * represents the specified {@code int} value.
      *
      * @param   value   the value to be represented by the
-     *                  {@code Integer} object.
+     *                  {@code ManagedInteger} object.
      */
-    public Integer(int value) {
+    public ManagedInteger(int value) {
         this.value = value;
     }
 
     /**
-     * Constructs a newly allocated {@code Integer} object that
+     * Constructs a newly allocated {@code ManagedInteger} object that
      * represents the {@code int} value indicated by the
      * {@code String} parameter. The string is converted to an
      * {@code int} value in exactly the manner used by the
      * {@code parseInt} method for radix 10.
      *
      * @param      s   the {@code String} to be converted to an
-     *                 {@code Integer}.
+     *                 {@code ManagedInteger}.
      * @exception  NumberFormatException  if the {@code String} does not
      *               contain a parsable integer.
      * @see        java.lang.Integer#parseInt(java.lang.String, int)
      */
-    public Integer(String s) throws NumberFormatException {
+    public ManagedInteger(String s) throws NumberFormatException {
         this.value = parseInt(s, 10);
     }
 
     /**
-     * Returns the value of this {@code Integer} as a {@code byte}
+     * Returns the value of this {@code ManagedInteger} as a {@code byte}
      * after a narrowing primitive conversion.
      * @jls 5.1.3 Narrowing Primitive Conversions
      */
@@ -912,7 +904,7 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     /**
-     * Returns the value of this {@code Integer} as a {@code short}
+     * Returns the value of this {@code ManagedInteger} as a {@code short}
      * after a narrowing primitive conversion.
      * @jls 5.1.3 Narrowing Primitive Conversions
      */
@@ -921,7 +913,7 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     /**
-     * Returns the value of this {@code Integer} as an
+     * Returns the value of this {@code ManagedInteger} as an
      * {@code int}.
      */
     public int intValue() {
@@ -929,17 +921,17 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     /**
-     * Returns the value of this {@code Integer} as a {@code long}
+     * Returns the value of this {@code ManagedInteger} as a {@code long}
      * after a widening primitive conversion.
      * @jls 5.1.2 Widening Primitive Conversions
-     * @see Integer#toUnsignedLong(int)
+     * @see ManagedInteger#toUnsignedLong(int)
      */
     public long longValue() {
         return (long)value;
     }
 
     /**
-     * Returns the value of this {@code Integer} as a {@code float}
+     * Returns the value of this {@code ManagedInteger} as a {@code float}
      * after a widening primitive conversion.
      * @jls 5.1.2 Widening Primitive Conversions
      */
@@ -948,7 +940,7 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     /**
-     * Returns the value of this {@code Integer} as a {@code double}
+     * Returns the value of this {@code ManagedInteger} as a {@code double}
      * after a widening primitive conversion.
      * @jls 5.1.2 Widening Primitive Conversions
      */
@@ -958,7 +950,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
     /**
      * Returns a {@code String} object representing this
-     * {@code Integer}'s value. The value is converted to signed
+     * {@code ManagedInteger}'s value. The value is converted to signed
      * decimal representation and returned as a string, exactly as if
      * the integer value were given as an argument to the {@link
      * java.lang.Integer#toString(int)} method.
@@ -971,20 +963,20 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     /**
-     * Returns a hash code for this {@code Integer}.
+     * Returns a hash code for this {@code ManagedInteger}.
      *
      * @return  a hash code value for this object, equal to the
      *          primitive {@code int} value represented by this
-     *          {@code Integer} object.
+     *          {@code ManagedInteger} object.
      */
     @Override
     public int hashCode() {
-        return Integer.hashCode(value);
+        return ManagedInteger.hashCode(value);
     }
 
     /**
      * Returns a hash code for a {@code int} value; compatible with
-     * {@code Integer.hashCode()}.
+     * {@code ManagedInteger.hashCode()}.
      *
      * @param value the value to hash
      * @since 1.8
@@ -998,7 +990,7 @@ public final class Integer extends Number implements Comparable<Integer> {
     /**
      * Compares this object to the specified object.  The result is
      * {@code true} if and only if the argument is not
-     * {@code null} and is an {@code Integer} object that
+     * {@code null} and is an {@code ManagedInteger} object that
      * contains the same {@code int} value as this object.
      *
      * @param   obj   the object to compare with.
@@ -1006,8 +998,8 @@ public final class Integer extends Number implements Comparable<Integer> {
      *          {@code false} otherwise.
      */
     public boolean equals(Object obj) {
-        if (obj instanceof Integer) {
-            return value == ((Integer)obj).intValue();
+        if (obj instanceof ManagedInteger) {
+            return value == ((ManagedInteger)obj).intValue();
         }
         return false;
     }
@@ -1020,15 +1012,15 @@ public final class Integer extends Number implements Comparable<Integer> {
      * property.  System properties are accessible through the {@link
      * java.lang.System#getProperty(java.lang.String)} method. The
      * string value of this property is then interpreted as an integer
-     * value using the grammar supported by {@link Integer#decode decode} and
-     * an {@code Integer} object representing this value is returned.
+     * value using the grammar supported by {@link ManagedInteger#decode decode} and
+     * an {@code ManagedInteger} object representing this value is returned.
      *
      * <p>If there is no property with the specified name, if the
      * specified name is empty or {@code null}, or if the property
      * does not have the correct numeric format, then {@code null} is
      * returned.
      *
-     * <p>In other words, this method returns an {@code Integer}
+     * <p>In other words, this method returns an {@code ManagedInteger}
      * object equal to the value of:
      *
      * <blockquote>
@@ -1036,13 +1028,13 @@ public final class Integer extends Number implements Comparable<Integer> {
      * </blockquote>
      *
      * @param   nm   property name.
-     * @return  the {@code Integer} value of the property.
+     * @return  the {@code ManagedInteger} value of the property.
      * @throws  SecurityException for the same reasons as
      *          {@link System#getProperty(String) System.getProperty}
      * @see     java.lang.System#getProperty(java.lang.String)
      * @see     java.lang.System#getProperty(java.lang.String, java.lang.String)
      */
-    public static Integer getInteger(String nm) {
+    public static ManagedInteger getInteger(String nm) {
         return getInteger(nm, null);
     }
 
@@ -1054,43 +1046,43 @@ public final class Integer extends Number implements Comparable<Integer> {
      * property.  System properties are accessible through the {@link
      * java.lang.System#getProperty(java.lang.String)} method. The
      * string value of this property is then interpreted as an integer
-     * value using the grammar supported by {@link Integer#decode decode} and
-     * an {@code Integer} object representing this value is returned.
+     * value using the grammar supported by {@link ManagedInteger#decode decode} and
+     * an {@code ManagedInteger} object representing this value is returned.
      *
-     * <p>The second argument is the default value. An {@code Integer} object
+     * <p>The second argument is the default value. An {@code ManagedInteger} object
      * that represents the value of the second argument is returned if there
      * is no property of the specified name, if the property does not have
      * the correct numeric format, or if the specified name is empty or
      * {@code null}.
      *
-     * <p>In other words, this method returns an {@code Integer} object
+     * <p>In other words, this method returns an {@code ManagedInteger} object
      * equal to the value of:
      *
      * <blockquote>
-     *  {@code getInteger(nm, new Integer(val))}
+     *  {@code getInteger(nm, new ManagedInteger(val))}
      * </blockquote>
      *
      * but in practice it may be implemented in a manner such as:
      *
      * <blockquote><pre>
-     * Integer result = getInteger(nm, null);
-     * return (result == null) ? new Integer(val) : result;
+     * ManagedInteger result = getInteger(nm, null);
+     * return (result == null) ? new ManagedInteger(val) : result;
      * </pre></blockquote>
      *
-     * to avoid the unnecessary allocation of an {@code Integer}
+     * to avoid the unnecessary allocation of an {@code ManagedInteger}
      * object when the default value is not needed.
      *
      * @param   nm   property name.
      * @param   val   default value.
-     * @return  the {@code Integer} value of the property.
+     * @return  the {@code ManagedInteger} value of the property.
      * @throws  SecurityException for the same reasons as
      *          {@link System#getProperty(String) System.getProperty}
      * @see     java.lang.System#getProperty(java.lang.String)
      * @see     java.lang.System#getProperty(java.lang.String, java.lang.String)
      */
-    public static Integer getInteger(String nm, int val) {
-        Integer result = getInteger(nm, null);
-        return (result == null) ? Integer.valueOf(val) : result;
+    public static ManagedInteger getInteger(String nm, int val) {
+        ManagedInteger result = getInteger(nm, null);
+        return (result == null) ? ManagedInteger.valueOf(val) : result;
     }
 
     /**
@@ -1099,8 +1091,8 @@ public final class Integer extends Number implements Comparable<Integer> {
      * system property.  System properties are accessible through the
      * {@link java.lang.System#getProperty(java.lang.String)} method.
      * The string value of this property is then interpreted as an
-     * integer value, as per the {@link Integer#decode decode} method,
-     * and an {@code Integer} object representing this value is
+     * integer value, as per the {@link ManagedInteger#decode decode} method,
+     * and an {@code ManagedInteger} object representing this value is
      * returned; in summary:
      *
      * <ul><li>If the property value begins with the two ASCII characters
@@ -1124,13 +1116,13 @@ public final class Integer extends Number implements Comparable<Integer> {
      *
      * @param   nm   property name.
      * @param   val   default value.
-     * @return  the {@code Integer} value of the property.
+     * @return  the {@code ManagedInteger} value of the property.
      * @throws  SecurityException for the same reasons as
      *          {@link System#getProperty(String) System.getProperty}
      * @see     System#getProperty(java.lang.String)
      * @see     System#getProperty(java.lang.String, java.lang.String)
      */
-    public static Integer getInteger(String nm, Integer val) {
+    public static ManagedInteger getInteger(String nm, ManagedInteger val) {
         String v = null;
         try {
             v = System.getProperty(nm);
@@ -1138,7 +1130,7 @@ public final class Integer extends Number implements Comparable<Integer> {
         }
         if (v != null) {
             try {
-                return Integer.decode(v);
+                return ManagedInteger.decode(v);
             } catch (NumberFormatException e) {
             }
         }
@@ -1146,7 +1138,7 @@ public final class Integer extends Number implements Comparable<Integer> {
     }
 
     /**
-     * Decodes a {@code String} into an {@code Integer}.
+     * Decodes a {@code String} into an {@code ManagedInteger}.
      * Accepts decimal, hexadecimal, and octal numbers given
      * by the following grammar:
      *
@@ -1173,7 +1165,7 @@ public final class Integer extends Number implements Comparable<Integer> {
      * <p>The sequence of characters following an optional
      * sign and/or radix specifier ("{@code 0x}", "{@code 0X}",
      * "{@code #}", or leading zero) is parsed as by the {@code
-     * Integer.parseInt} method with the indicated radix (10, 16, or
+     * ManagedInteger.parseInt} method with the indicated radix (10, 16, or
      * 8).  This sequence of characters must represent a positive
      * value or a {@link NumberFormatException} will be thrown.  The
      * result is negated if first character of the specified {@code
@@ -1181,17 +1173,17 @@ public final class Integer extends Number implements Comparable<Integer> {
      * permitted in the {@code String}.
      *
      * @param     nm the {@code String} to decode.
-     * @return    an {@code Integer} object holding the {@code int}
+     * @return    an {@code ManagedInteger} object holding the {@code int}
      *             value represented by {@code nm}
      * @exception NumberFormatException  if the {@code String} does not
      *            contain a parsable integer.
-     * @see java.lang.Integer#parseInt(java.lang.String, int)
+     * @see ManagedInteger#parseInt(java.lang.String, int)
      */
-    public static Integer decode(String nm) throws NumberFormatException {
+    public static ManagedInteger decode(String nm) throws NumberFormatException {
         int radix = 10;
         int index = 0;
         boolean negative = false;
-        Integer result;
+        ManagedInteger result;
 
         if (nm.length() == 0)
             throw new NumberFormatException("Zero length string");
@@ -1221,33 +1213,33 @@ public final class Integer extends Number implements Comparable<Integer> {
             throw new NumberFormatException("Sign character in wrong position");
 
         try {
-            result = Integer.valueOf(nm.substring(index), radix);
-            result = negative ? Integer.valueOf(-result.intValue()) : result;
+            result = ManagedInteger.valueOf(nm.substring(index), radix);
+            result = negative ? ManagedInteger.valueOf(-result.intValue()) : result;
         } catch (NumberFormatException e) {
-            // If number is Integer.MIN_VALUE, we'll end up here. The next line
+            // If number is ManagedInteger.MIN_VALUE, we'll end up here. The next line
             // handles this case, and causes any genuine format error to be
             // rethrown.
             String constant = negative ? ("-" + nm.substring(index))
                                        : nm.substring(index);
-            result = Integer.valueOf(constant, radix);
+            result = ManagedInteger.valueOf(constant, radix);
         }
         return result;
     }
 
     /**
-     * Compares two {@code Integer} objects numerically.
+     * Compares two {@code ManagedInteger} objects numerically.
      *
-     * @param   anotherInteger   the {@code Integer} to be compared.
-     * @return  the value {@code 0} if this {@code Integer} is
-     *          equal to the argument {@code Integer}; a value less than
-     *          {@code 0} if this {@code Integer} is numerically less
-     *          than the argument {@code Integer}; and a value greater
-     *          than {@code 0} if this {@code Integer} is numerically
-     *           greater than the argument {@code Integer} (signed
+     * @param   anotherInteger   the {@code ManagedInteger} to be compared.
+     * @return  the value {@code 0} if this {@code ManagedInteger} is
+     *          equal to the argument {@code ManagedInteger}; a value less than
+     *          {@code 0} if this {@code ManagedInteger} is numerically less
+     *          than the argument {@code ManagedInteger}; and a value greater
+     *          than {@code 0} if this {@code ManagedInteger} is numerically
+     *           greater than the argument {@code ManagedInteger} (signed
      *           comparison).
      * @since   1.2
      */
-    public int compareTo(Integer anotherInteger) {
+    public int compareTo(ManagedInteger anotherInteger) {
         return compare(this.value, anotherInteger.value);
     }
 
@@ -1255,7 +1247,7 @@ public final class Integer extends Number implements Comparable<Integer> {
      * Compares two {@code int} values numerically.
      * The value returned is identical to what would be returned by:
      * <pre>
-     *    Integer.valueOf(x).compareTo(Integer.valueOf(y))
+     *    ManagedInteger.valueOf(x).compareTo(ManagedInteger.valueOf(y))
      * </pre>
      *
      * @param  x the first {@code int} to compare
@@ -1355,7 +1347,7 @@ public final class Integer extends Number implements Comparable<Integer> {
      *
      * @since 1.5
      */
-    @Native public static final int SIZE = 32;
+    public static final int SIZE = 32;
 
     /**
      * The number of bytes used to represent a {@code int} value in two's
@@ -1624,7 +1616,4 @@ public final class Integer extends Number implements Comparable<Integer> {
     public static int min(int a, int b) {
         return Math.min(a, b);
     }
-
-    /** use serialVersionUID from JDK 1.0.2 for interoperability */
-    @Native private static final long serialVersionUID = 1360826667806852920L;
 }

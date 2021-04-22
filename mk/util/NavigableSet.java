@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 NIPS
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,7 +38,9 @@
 // removed link to collections framework docs
 // END android-note
 
-package java.util;
+package mk.util;
+
+import mk.lang.ManagedObject;
 
 /**
  * A {@link SortedSet} extended with navigation methods reporting
@@ -56,9 +59,9 @@ package java.util;
  * #pollFirst} and {@link #pollLast} that return and remove the lowest
  * and highest element, if one exists, else returning {@code null}.
  * Methods
- * {@link #subSet(Object, boolean, Object, boolean) subSet(E, boolean, E, boolean)},
- * {@link #headSet(Object, boolean) headSet(E, boolean)}, and
- * {@link #tailSet(Object, boolean) tailSet(E, boolean)}
+ * {@link #subSet(ManagedObject, boolean, ManagedObject, boolean) subSet(E, boolean, E, boolean)},
+ * {@link #headSet(ManagedObject, boolean) headSet(E, boolean)}, and
+ * {@link #tailSet(ManagedObject, boolean) tailSet(E, boolean)}
  * differ from the like-named {@code SortedSet} methods in accepting
  * additional arguments describing whether lower and upper bounds are
  * inclusive versus exclusive.  Subsets of any {@code NavigableSet}
@@ -73,9 +76,9 @@ package java.util;
  * Comparable} elements intrinsically do not permit {@code null}.)
  *
  * <p>Methods
- * {@link #subSet(Object, Object) subSet(E, E)},
- * {@link #headSet(Object) headSet(E)}, and
- * {@link #tailSet(Object) tailSet(E)}
+ * {@link #subSet(ManagedObject, ManagedObject) subSet(E, E)},
+ * {@link #headSet(ManagedObject) headSet(E)}, and
+ * {@link #tailSet(ManagedObject) tailSet(E)}
  * are specified to return {@code SortedSet} to allow existing
  * implementations of {@code SortedSet} to be compatibly retrofitted to
  * implement {@code NavigableSet}, but extensions and implementations
@@ -87,7 +90,7 @@ package java.util;
  * @param <E> the type of elements maintained by this set
  * @since 1.6
  */
-public interface NavigableSet<E> extends SortedSet<E> {
+public interface NavigableSet<E extends ManagedObject> extends SortedSet<E> {
     /**
      * Returns the greatest element in this set strictly less than the
      * given element, or {@code null} if there is no such element.
@@ -214,8 +217,7 @@ public interface NavigableSet<E> extends SortedSet<E> {
      *         {@code fromElement}, inclusive, to {@code toElement}, exclusive
      * @throws ClassCastException if {@code fromElement} and
      *         {@code toElement} cannot be compared to one another using this
-     *         set's comparator (or, if the set has no comparator, using
-     *         natural ordering).  Implementations may, but are not required
+     *         set's comparator.  Implementations may, but are not required
      *         to, throw this exception if {@code fromElement} or
      *         {@code toElement} cannot be compared to elements currently in
      *         the set.
@@ -246,8 +248,7 @@ public interface NavigableSet<E> extends SortedSet<E> {
      * @return a view of the portion of this set whose elements are less than
      *         (or equal to, if {@code inclusive} is true) {@code toElement}
      * @throws ClassCastException if {@code toElement} is not compatible
-     *         with this set's comparator (or, if the set has no comparator,
-     *         if {@code toElement} does not implement {@link Comparable}).
+     *         with this set's comparator.
      *         Implementations may, but are not required to, throw this
      *         exception if {@code toElement} cannot be compared to elements
      *         currently in the set.
@@ -275,8 +276,7 @@ public interface NavigableSet<E> extends SortedSet<E> {
      * @return a view of the portion of this set whose elements are greater
      *         than or equal to {@code fromElement}
      * @throws ClassCastException if {@code fromElement} is not compatible
-     *         with this set's comparator (or, if the set has no comparator,
-     *         if {@code fromElement} does not implement {@link Comparable}).
+     *         with this set's comparator.
      *         Implementations may, but are not required to, throw this
      *         exception if {@code fromElement} cannot be compared to elements
      *         currently in the set.
