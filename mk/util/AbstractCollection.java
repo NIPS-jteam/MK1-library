@@ -175,7 +175,7 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
      *         further elements returned by the iterator, trimmed to size
      */
     @SuppressWarnings("unchecked")
-    private static <T extends ManagedObject> T[] finishToArray(T[] r, Iterator<?> it) {
+    private static <T extends ManagedObject> ManagedObject[] finishToArray(ManagedObject[] r, Iterator<T> it) {
         int i = r.length;
         while (it.hasNext()) {
             int cap = r.length;
@@ -266,18 +266,13 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
      * if it's contained in this collection.  If all elements are so
      * contained <tt>true</tt> is returned, otherwise <tt>false</tt>.
      *
-     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
-     *          iterate through collection with iterator instead of initial
-     *          for (Object e : c)
-     *              if (!contains(e))
-     *
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      * @see #contains(E)
      */
     public boolean containsAll(Collection<? extends E> c) {
-        for (Iterator e = c.iterator(); e.hasNext(); )
-            if (!contains((E) e.next()))
+        for (Iterator<? extends E> e = c.iterator(); e.hasNext(); )
+            if (!contains(e.next()))
                 return false;
         return true;
     }
@@ -292,11 +287,6 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
      * <tt>UnsupportedOperationException</tt> unless <tt>add</tt> is
      * overridden (assuming the specified collection is non-empty).
      *
-     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
-     *       iterate through collection with iterator instead of initial
-     *       for (E e : c)
-     *           if (add(e))
-     *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
@@ -307,7 +297,7 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
      */
     public boolean addAll(Collection<? extends E> c) {
         boolean modified = false;
-        for (Iterator<E> it = (Iterator<E>) c.iterator(); it.hasNext(); )
+        for (Iterator<? extends E> it = c.iterator(); it.hasNext(); )
             if (add(it.next()))
                 modified = true;
         return modified;
@@ -402,5 +392,14 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
             it.next();
             it.remove();
         }
+    }
+
+    /**
+     * Returns external implementation of object comparison.
+     * @return Equality object of super class.
+     */
+    @Override
+    public Equality<E> getEquality() {
+        return eq;
     }
 }

@@ -191,7 +191,7 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
                     return it.previousIndex();
         } else {
             while (it.hasNext())
-                if (eq.equals((E) o, it.next()))
+                if (eq.equals(o, it.next()))
                     return it.previousIndex();
         }
         return -1;
@@ -258,11 +258,6 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
      * <p>Note that this implementation throws an
      * {@code UnsupportedOperationException} unless
      * {@link #add(int, ManagedObject) add(int, E)} is overridden.
-     *
-     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
-     *       iterate through collection with iterator instead of initial
-     *       for (E e : c) {
-     *           add(index++, e);
      *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
@@ -347,7 +342,7 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
         return new ListItr(index);
     }
 
-    private class Itr implements Iterator<E> {
+    private class Itr extends ManagedObject implements Iterator<E> {
         /**
          * Index of element to be returned by subsequent call to next.
          */
@@ -503,8 +498,8 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
     public List<E> subList(int fromIndex, int toIndex) {
         subListRangeCheck(fromIndex, toIndex, size());
         return (this instanceof RandomAccess ?
-                new RandomAccessSubList<>(this, fromIndex, toIndex, eq) :
-                new SubList<>(this, fromIndex, toIndex, eq));
+                new RandomAccessSubList<>(this, fromIndex, toIndex) :
+                new SubList<>(this, fromIndex, toIndex));
     }
 
     static void subListRangeCheck(int fromIndex, int toIndex, int size) {
@@ -580,11 +575,7 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
 
     private void rangeCheckForAdd(int index) {
         if (index < 0 || index > size())
-            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
-    }
-
-    private String outOfBoundsMsg(int index) {
-        return "Index: "+index+", Size: "+size();
+            throw new IndexOutOfBoundsException("Index: "+index+", Size: "+size());
     }
 
     private static class SubList<E extends ManagedObject> extends AbstractList<E> {
@@ -597,8 +588,8 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
          * Constructs a sublist of an arbitrary AbstractList, which is
          * not a SubList itself.
          */
-        public SubList(AbstractList<E> root, int fromIndex, int toIndex, Equality<E> eq) {
-            super(eq);
+        public SubList(AbstractList<E> root, int fromIndex, int toIndex) {
+            super(root.getEquality());
             this.root = root;
             this.parent = null;
             this.offset = fromIndex;
@@ -609,8 +600,8 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
         /**
          * Constructs a sublist of another SubList.
          */
-        protected SubList(SubList<E> parent, int fromIndex, int toIndex, Equality<E> eq) {
-            super(eq);
+        protected SubList(SubList<E> parent, int fromIndex, int toIndex) {
+            super(parent.getEquality());
             this.root = parent.root;
             this.parent = parent;
             this.offset = parent.offset + fromIndex;
@@ -731,16 +722,12 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
 
         public List<E> subList(int fromIndex, int toIndex) {
             subListRangeCheck(fromIndex, toIndex, size);
-            return new SubList<>(this, fromIndex, toIndex, eq);
+            return new SubList<>(this, fromIndex, toIndex);
         }
 
         private void rangeCheckForAdd(int index) {
             if (index < 0 || index > size)
-                throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
-        }
-
-        private String outOfBoundsMsg(int index) {
-            return "Index: "+index+", Size: "+size;
+                throw new IndexOutOfBoundsException("Index: "+index+", Size: "+size);
         }
 
         private void checkForComodification() {
@@ -766,30 +753,21 @@ public abstract class AbstractList<E extends ManagedObject> extends AbstractColl
          * not a RandomAccessSubList itself.
          */
         RandomAccessSubList(AbstractList<E> root,
-                int fromIndex, int toIndex, Equality<E> eq) {
-            super(root, fromIndex, toIndex, eq);
+                int fromIndex, int toIndex) {
+            super(root, fromIndex, toIndex);
         }
 
         /**
          * Constructs a sublist of another RandomAccessSubList.
          */
         RandomAccessSubList(RandomAccessSubList<E> parent,
-                int fromIndex, int toIndex, Equality<E> eq) {
-            super(parent, fromIndex, toIndex, eq);
+                int fromIndex, int toIndex) {
+            super(parent, fromIndex, toIndex);
         }
 
         public List<E> subList(int fromIndex, int toIndex) {
             subListRangeCheck(fromIndex, toIndex, size);
-            return new RandomAccessSubList<>(this, fromIndex, toIndex, eq);
+            return new RandomAccessSubList<>(this, fromIndex, toIndex);
         }
-    }
-
-    /**
-     * Returns external implementation of object comparison.
-     * @return Equality object of super class.
-     */
-    @Override
-    public Equality<E> getEquality() {
-        return eq;
     }
 }

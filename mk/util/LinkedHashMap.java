@@ -142,7 +142,7 @@ import mk.lang.ManagedObject;
  * @see     TreeMap
  * @since   1.4
  */
-public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
+public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
     extends HashMap<K,V>
     implements Map<K,V>
 {
@@ -177,10 +177,10 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
     /**
      * HashMap.Node subclass for normal LinkedHashMap entries.
      */
-    static class LinkedHashMapEntry<K extends ManagedObject,V extends ManagedObject> extends HashMap.Node<K,V> {
+    static class LinkedHashMapEntry<K extends ManagedObject, V extends ManagedObject> extends HashMap.Node<K,V> {
         LinkedHashMapEntry<K,V> before, after;
-        LinkedHashMapEntry(int hash, K key, V value, Node<K,V> next, Hasher<K> hs, Equality<V> eq) {
-            super(hash, key, value, next, hs, eq);
+        LinkedHashMapEntry(int hash, K key, V value, Node<K,V> next, Hasher<K> keysHasher, Equality<V> valuesEq) {
+            super(hash, key, value, next, keysHasher, valuesEq);
         }
     }
 
@@ -240,7 +240,7 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
 
     Node<K,V> newNode(int hash, K key, V value, Node<K,V> e) {
         LinkedHashMapEntry<K,V> p =
-            new LinkedHashMapEntry<K,V>(hash, key, value, e, hs, eq);
+            new LinkedHashMapEntry<K,V>(hash, key, value, e, keysHasher, valuesEq);
         linkNodeLast(p);
         return p;
     }
@@ -248,20 +248,20 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
     Node<K,V> replacementNode(Node<K,V> p, Node<K,V> next) {
         LinkedHashMapEntry<K,V> q = (LinkedHashMapEntry<K,V>)p;
         LinkedHashMapEntry<K,V> t =
-            new LinkedHashMapEntry<K,V>(q.hash, q.key, q.value, next, hs, eq);
+            new LinkedHashMapEntry<K,V>(q.hash, q.key, q.value, next, keysHasher, valuesEq);
         transferLinks(q, t);
         return t;
     }
 
     TreeNode<K,V> newTreeNode(int hash, K key, V value, Node<K,V> next) {
-        TreeNode<K,V> p = new TreeNode<K,V>(hash, key, value, next, hs, eq);
+        TreeNode<K,V> p = new TreeNode<K,V>(hash, key, value, next, keysHasher, valuesEq);
         linkNodeLast(p);
         return p;
     }
 
     TreeNode<K,V> replacementTreeNode(Node<K,V> p, Node<K,V> next) {
         LinkedHashMapEntry<K,V> q = (LinkedHashMapEntry<K,V>)p;
-        TreeNode<K,V> t = new TreeNode<K,V>(q.hash, q.key, q.value, next, hs, eq);
+        TreeNode<K,V> t = new TreeNode<K,V>(q.hash, q.key, q.value, next, keysHasher, valuesEq);
         transferLinks(q, t);
         return t;
     }
@@ -284,7 +284,7 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
         LinkedHashMapEntry<K,V> first;
         if (evict && (first = head) != null && removeEldestEntry(first)) {
             K key = first.key;
-            removeNode(hash(key, hs), key, null, false, true);
+            removeNode(hash(key, keysHasher), key, null, false, true);
         }
     }
 
@@ -319,15 +319,15 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
      *
      * @param  initialCapacity the initial capacity
      * @param  loadFactor      the load factor
-     * @param  hs              the object with the implementations of 'equals'
+     * @param  keysHasher      the object with the implementations of 'equals'
      *         and 'hashCode' operations for hashed keys
-     * @param  eq              the object with the implementation of external
+     * @param  valuesEq        the object with the implementation of external
      *         comparison for values
      * @throws IllegalArgumentException if the initial capacity is negative
      *         or the load factor is nonpositive
      */
-    public LinkedHashMap(int initialCapacity, float loadFactor, Hasher<K> hs, Equality<V> eq) {
-        super(initialCapacity, loadFactor, hs, eq);
+    public LinkedHashMap(int initialCapacity, float loadFactor, Hasher<K> keysHasher, Equality<V> valuesEq) {
+        super(initialCapacity, loadFactor, keysHasher, valuesEq);
         accessOrder = false;
     }
 
@@ -336,14 +336,14 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
      * with the specified initial capacity and a default load factor (0.75).
      *
      * @param  initialCapacity the initial capacity
-     * @param  hs              the object with the implementations of 'equals'
+     * @param  keysHasher      the object with the implementations of 'equals'
      *         and 'hashCode' operations for hashed keys
-     * @param  eq              the object with the implementation of external
+     * @param  valuesEq        the object with the implementation of external
      *         comparison for values
      * @throws IllegalArgumentException if the initial capacity is negative
      */
-    public LinkedHashMap(int initialCapacity, Hasher<K> hs, Equality<V> eq) {
-        super(initialCapacity, hs, eq);
+    public LinkedHashMap(int initialCapacity, Hasher<K> keysHasher, Equality<V> valuesEq) {
+        super(initialCapacity, keysHasher, valuesEq);
         accessOrder = false;
     }
 
@@ -351,13 +351,13 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
      * Constructs an empty insertion-ordered <tt>LinkedHashMap</tt> instance
      * with the default initial capacity (16) and load factor (0.75).
      *
-     * @param  hs  the object with the implementations of 'equals' and
-     *             'hashCode' operations for hashed keys
-     * @param  eq  the object with the implementation of external comparison
-     *             for values
+     * @param  keysHasher  the object with the implementations of 'equals' and
+     *                     'hashCode' operations for hashed keys
+     * @param  valuesEq    the object with the implementation of external comparison
+     *                     for values
      */
-    public LinkedHashMap(Hasher<K> hs, Equality<V> eq) {
-        super(hs, eq);
+    public LinkedHashMap(Hasher<K> keysHasher, Equality<V> valuesEq) {
+        super(keysHasher, valuesEq);
         accessOrder = false;
     }
 
@@ -368,14 +368,14 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
      * capacity sufficient to hold the mappings in the specified map.
      *
      * @param  m   the map whose mappings are to be placed in this map
-     * @param  hs  the object with the implementations of 'equals' and
+     * @param  keysHasher  the object with the implementations of 'equals' and
      *             'hashCode' operations for hashed keys
-     * @param  eq  the object with the implementation of external comparison
+     * @param  valuesEq  the object with the implementation of external comparison
      *             for values
      * @throws NullPointerException if the specified map is null
      */
-    public LinkedHashMap(Map<? extends K, ? extends V> m, Hasher<K> hs, Equality<V> eq) {
-        super(hs, eq);
+    public LinkedHashMap(Map<? extends K, ? extends V> m, Hasher<K> keysHasher, Equality<V> valuesEq) {
+        super(keysHasher, valuesEq);
         accessOrder = false;
         putMapEntries(m, false);
     }
@@ -388,9 +388,9 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
      * @param  loadFactor      the load factor
      * @param  accessOrder     the ordering mode - <tt>true</tt> for
      *         access-order, <tt>false</tt> for insertion-order
-     * @param  hs              the object with the implementations of 'equals'
+     * @param  keysHasher      the object with the implementations of 'equals'
      *         and 'hashCode' operations for hashed keys
-     * @param  eq              the object with the implementation of external
+     * @param  valuesEq        the object with the implementation of external
      *         comparison for values
      * @throws IllegalArgumentException if the initial capacity is negative
      *         or the load factor is nonpositive
@@ -398,9 +398,9 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
     public LinkedHashMap(int initialCapacity,
                          float loadFactor,
                          boolean accessOrder,
-                         Hasher<K> hs,
-                         Equality<V> eq) {
-        super(initialCapacity, loadFactor, hs, eq);
+                         Hasher<K> keysHasher,
+                         Equality<V> valuesEq) {
+        super(initialCapacity, loadFactor, keysHasher, valuesEq);
         this.accessOrder = accessOrder;
     }
 
@@ -416,7 +416,7 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
     public boolean containsValue(V value) {
         for (LinkedHashMapEntry<K,V> e = head; e != null; e = e.after) {
             V v = e.value;
-            if (v == value || (value != null && eq.equals(value, v)))
+            if (v == value || (value != null && valuesEq.equals(value, v)))
                 return true;
         }
         return false;
@@ -439,7 +439,7 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
      */
     public V get(K key) {
         Node<K,V> e;
-        if ((e = getNode(hash(key, hs), key)) == null)
+        if ((e = getNode(hash(key, keysHasher), key)) == null)
             return null;
         if (accessOrder)
             afterNodeAccess(e);
@@ -526,15 +526,15 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
-            ks = new LinkedKeySet(hs);
+            ks = new LinkedKeySet(keysHasher);
             keySet = ks;
         }
         return ks;
     }
 
     final class LinkedKeySet extends AbstractSet<K> {
-        LinkedKeySet(Hasher<K> hs) {
-            super(hs);
+        LinkedKeySet(Hasher<K> keysHasher) {
+            super(keysHasher);
         }
 
         public final int size()                 { return size; }
@@ -544,7 +544,7 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
         }
         public final boolean contains(K o) { return containsKey(o); }
         public final boolean remove(K key) {
-            return removeNode(hash(key, hs), key, null, false, true) != null;
+            return removeNode(hash(key, keysHasher), key, null, false, true) != null;
         }
     }
 
@@ -566,7 +566,7 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
     public Collection<V> values() {
         Collection<V> vs = values;
         if (vs == null) {
-            vs = new LinkedValues(eq);
+            vs = new LinkedValues(valuesEq);
             values = vs;
         }
         return vs;
@@ -603,7 +603,7 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
      */
     public Set<Map.Entry<K,V>> entrySet() {
         Set<Map.Entry<K,V>> es;
-        return (es = entrySet) == null ? (entrySet = new LinkedEntrySet(new EqualityMapEntry<>(hs, eq))) : es;
+        return (es = entrySet) == null ? (entrySet = new LinkedEntrySet(new MapEntryEquality<>(keysHasher, valuesEq))) : es;
     }
 
     final class LinkedEntrySet extends AbstractSet<Map.Entry<K,V>> {
@@ -619,14 +619,14 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
         public final boolean contains(Map.Entry<K,V> o) {
             Map.Entry<K,V> e = o;
             K key = e.getKey();
-            Node<K,V> candidate = getNode(hash(key, hs), key);
+            Node<K,V> candidate = getNode(hash(key, keysHasher), key);
             return candidate != null && candidate.equalTo(e);
         }
         public final boolean remove(Map.Entry<K,V> o) {
             Map.Entry<K,V> e = o;
             K key = e.getKey();
             V value = e.getValue();
-            return removeNode(hash(key, hs), key, value, true, true) != null;
+            return removeNode(hash(key, keysHasher), key, value, true, true) != null;
         }
     }
 
@@ -666,7 +666,7 @@ public class LinkedHashMap<K extends ManagedObject,V extends ManagedObject>
                 throw new ConcurrentModificationException();
             current = null;
             K key = p.key;
-            removeNode(hash(key, hs), key, null, false, false);
+            removeNode(hash(key, keysHasher), key, null, false, false);
             expectedModCount = modCount;
         }
     }

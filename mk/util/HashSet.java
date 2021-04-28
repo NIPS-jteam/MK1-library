@@ -110,12 +110,12 @@ public class HashSet<E extends ManagedObject>
      * Constructs a new, empty set; the backing <tt>HashMap</tt> instance has
      * default initial capacity (16) and load factor (0.75).
      *
-     * @param hs the object with the implementations of 'equals' and
+     * @param keysHasher the object with the implementations of 'equals' and
      *           'hashCode' operations for hashed keys
      */
-    public HashSet(Hasher<E> hs) {
-        super(hs);
-        map = new HashMap<>(hs, EQ);
+    public HashSet(Hasher<E> keysHasher) {
+        super(keysHasher);
+        map = new HashMap<>(keysHasher, EQ);
     }
 
     /**
@@ -125,13 +125,13 @@ public class HashSet<E extends ManagedObject>
      * the specified collection.
      *
      * @param c   the collection whose elements are to be placed into this set
-     * @param hs  the object with the implementations of 'equals' and
+     * @param keysHasher the object with the implementations of 'equals' and
      *            'hashCode' operations for hashed keys
      * @throws NullPointerException if the specified collection is null
      */
-    public HashSet(Collection<? extends E> c, Hasher<E> hs) {
-        super(hs);
-        map = new HashMap<>(Math.max((int) (c.size()/.75f) + 1, 16), hs, EQ);
+    public HashSet(Collection<? extends E> c, Hasher<E> keysHasher) {
+        super(keysHasher);
+        map = new HashMap<>(Math.max((int) (c.size()/.75f) + 1, 16), keysHasher, EQ);
         addAll(c);
     }
 
@@ -141,14 +141,14 @@ public class HashSet<E extends ManagedObject>
      *
      * @param      initialCapacity   the initial capacity of the hash map
      * @param      loadFactor        the load factor of the hash map
-     * @param      hs                the object with the implementations
+     * @param      keysHasher        the object with the implementations
      *             of 'equals' and 'hashCode' operations for hashed keys
      * @throws     IllegalArgumentException if the initial capacity is less
      *             than zero, or if the load factor is nonpositive
      */
-    public HashSet(int initialCapacity, float loadFactor, Hasher<E> hs) {
-        super(hs);
-        map = new HashMap<>(initialCapacity, loadFactor, hs, EQ);
+    public HashSet(int initialCapacity, float loadFactor, Hasher<E> keysHasher) {
+        super(keysHasher);
+        map = new HashMap<>(initialCapacity, loadFactor, keysHasher, EQ);
     }
 
     /**
@@ -156,14 +156,14 @@ public class HashSet<E extends ManagedObject>
      * the specified initial capacity and default load factor (0.75).
      *
      * @param      initialCapacity   the initial capacity of the hash table
-     * @param      hs                the object with the implementations
+     * @param      keysHasher        the object with the implementations
      *             of 'equals' and 'hashCode' operations for hashed keys
      * @throws     IllegalArgumentException if the initial capacity is less
      *             than zero
      */
-    public HashSet(int initialCapacity, Hasher<E> hs) {
-        super(hs);
-        map = new HashMap<>(initialCapacity, hs, EQ);
+    public HashSet(int initialCapacity, Hasher<E> keysHasher) {
+        super(keysHasher);
+        map = new HashMap<>(initialCapacity, keysHasher, EQ);
     }
 
     /**
@@ -176,14 +176,14 @@ public class HashSet<E extends ManagedObject>
      * @param      loadFactor        the load factor of the hash map
      * @param      dummy             ignored (distinguishes this
      *             constructor from other int, float constructor.)
-     * @param      hs                the object with the implementations
+     * @param      keysHasher        the object with the implementations
      *             of 'equals' and 'hashCode' operations for hashed keys
      * @throws     IllegalArgumentException if the initial capacity is less
      *             than zero, or if the load factor is nonpositive
      */
-    HashSet(int initialCapacity, float loadFactor, boolean dummy, Hasher<E> hs) {
-        super(hs);
-        map = new LinkedHashMap<>(initialCapacity, loadFactor, hs, EQ);
+    HashSet(int initialCapacity, float loadFactor, boolean dummy, Hasher<E> keysHasher) {
+        super(keysHasher);
+        map = new LinkedHashMap<>(initialCapacity, loadFactor, keysHasher, EQ);
     }
 
     /**

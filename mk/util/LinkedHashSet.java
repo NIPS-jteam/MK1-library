@@ -123,13 +123,13 @@ public class LinkedHashSet<E extends ManagedObject>
      *
      * @param      initialCapacity the initial capacity of the linked hash set
      * @param      loadFactor      the load factor of the linked hash set
-     * @param      hs              the object with the implementations of 'equals'
+     * @param      keysHasher      the object with the implementations of 'equals'
      *             and 'hashCode' operations for hashed keys
      * @throws     IllegalArgumentException  if the initial capacity is less
      *             than zero, or if the load factor is nonpositive
      */
-    public LinkedHashSet(int initialCapacity, float loadFactor, Hasher<E> hs) {
-        super(initialCapacity, loadFactor, true, hs);
+    public LinkedHashSet(int initialCapacity, float loadFactor, Hasher<E> keysHasher) {
+        super(initialCapacity, loadFactor, true, keysHasher);
     }
 
     /**
@@ -137,24 +137,24 @@ public class LinkedHashSet<E extends ManagedObject>
      * capacity and the default load factor (0.75).
      *
      * @param   initialCapacity   the initial capacity of the LinkedHashSet
-     * @param   hs                the object with the implementations of 'equals'
+     * @param   keysHasher        the object with the implementations of 'equals'
      *          and 'hashCode' operations for hashed keys
      * @throws  IllegalArgumentException if the initial capacity is less
      *          than zero
      */
-    public LinkedHashSet(int initialCapacity, Hasher<E> hs) {
-        super(initialCapacity, .75f, true, hs);
+    public LinkedHashSet(int initialCapacity, Hasher<E> keysHasher) {
+        super(initialCapacity, .75f, true, keysHasher);
     }
 
     /**
      * Constructs a new, empty linked hash set with the default initial
      * capacity (16) and load factor (0.75).
      *
-     * @param hs the object with the implementations of 'equals' and
+     * @param keysHasher the object with the implementations of 'equals' and
      *           'hashCode' operations for hashed keys
      */
-    public LinkedHashSet(Hasher<E> hs) {
-        super(16, .75f, true, hs);
+    public LinkedHashSet(Hasher<E> keysHasher) {
+        super(16, .75f, true, keysHasher);
     }
 
     /**
@@ -165,12 +165,12 @@ public class LinkedHashSet<E extends ManagedObject>
      *
      * @param c  the collection whose elements are to be placed into
      *           this set
-     * @param hs the object with the implementations of 'equals' and
+     * @param keysHasher the object with the implementations of 'equals' and
      *           'hashCode' operations for hashed keys
      * @throws NullPointerException if the specified collection is null
      */
-    public LinkedHashSet(Collection<? extends E> c, Hasher<E> hs) {
-        super(Math.max(2*c.size(), 11), .75f, true, hs);
+    public LinkedHashSet(Collection<? extends E> c, Hasher<E> keysHasher) {
+        super(Math.max(2*c.size(), 11), .75f, true, keysHasher);
         addAll(c);
     }
 }

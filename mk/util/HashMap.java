@@ -122,7 +122,7 @@ import mk.lang.System;
  * @see     TreeMap
  * @since   1.2
  */
-public class HashMap<K extends ManagedObject,V extends ManagedObject> extends AbstractMap<K,V>
+public class HashMap<K extends ManagedObject, V extends ManagedObject> extends AbstractMap<K,V>
     implements Map<K,V> {
 
     /*
@@ -243,21 +243,21 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      * Basic hash bin node, used for most entries.  (See below for
      * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)
      */
-    static class Node<K extends ManagedObject,V extends ManagedObject> extends Map.Entry<K,V> {
+    static class Node<K extends ManagedObject, V extends ManagedObject> extends Map.Entry<K,V> {
         final int hash;
         final K key;
         V value;
         Node<K,V> next;
-        Hasher<K> hs;
-        Equality<V> eq;
+        Hasher<K> keysHasher;
+        Equality<V> valuesEq;
 
-        Node(int hash, K key, V value, Node<K,V> next, Hasher<K> hs, Equality<V> eq) {
+        Node(int hash, K key, V value, Node<K,V> next, Hasher<K> keysHasher, Equality<V> valuesEq) {
             this.hash = hash;
             this.key = key;
             this.value = value;
             this.next = next;
-            this.hs = hs;
-            this.eq = eq;
+            this.keysHasher = keysHasher;
+            this.valuesEq = valuesEq;
         }
 
         public final K getKey()        { return key; }
@@ -274,9 +274,9 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
                 return true;
             Map.Entry<K,V> e = o;
             if ((key == e.getKey() ||
-                    (key != null && hs.equals(key, e.getKey()))) &&
+                    (key != null && keysHasher.equals(key, e.getKey()))) &&
                     (value == e.getValue() ||
-                            (value != null && eq.equals(value, e.getValue()))))
+                            (value != null && valuesEq.equals(value, e.getValue()))))
                 return true;
             return false;
         }
@@ -300,9 +300,9 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      * to incorporate impact of the highest bits that would otherwise
      * never be used in index calculations because of table bounds.
      */
-    static final<K extends ManagedObject> int hash(K key, Hasher<K> hs) {
+    static final<K extends ManagedObject> int hash(K key, Hasher<K> keysHasher) {
         int h;
-        return (key == null) ? 0 : (h = hs.getHashCode(key)) ^ (h >>> 16);
+        return (key == null) ? 0 : (h = keysHasher.getHashCode(key)) ^ (h >>> 16);
     }
 
     /**
@@ -374,15 +374,15 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      *
      * @param  initialCapacity the initial capacity
      * @param  loadFactor      the load factor
-     * @param  hs              the object with the implementations of 'equals'
+     * @param  keysHasher      the object with the implementations of 'equals'
      *         and 'hashCode' operations for hashed keys
-     * @param  eq              the object with the implementation of
+     * @param  valuesEq        the object with the implementation of
      *         external comparison for values
      * @throws IllegalArgumentException if the initial capacity is negative
      *         or the load factor is nonpositive
      */
-    public HashMap(int initialCapacity, float loadFactor, Hasher<K> hs, Equality<V> eq) {
-        super(hs, eq);
+    public HashMap(int initialCapacity, float loadFactor, Hasher<K> keysHasher, Equality<V> valuesEq) {
+        super(keysHasher, valuesEq);
         if (initialCapacity < 0)
             throw new IllegalArgumentException("Illegal initial capacity: " +
                                                initialCapacity);
@@ -400,26 +400,26 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      * capacity and the default load factor (0.75).
      *
      * @param  initialCapacity the initial capacity.
-     * @param  hs              the object with the implementations of 'equals'
+     * @param  keysHasher      the object with the implementations of 'equals'
      *         and 'hashCode' operations for hashed keys
-     * @param  eq              the object with the implementation of external
+     * @param  valuesEq        the object with the implementation of external
      *         comparison for values
      * @throws IllegalArgumentException if the initial capacity is negative.
      */
-    public HashMap(int initialCapacity, Hasher<K> hs, Equality<V> eq) {
-        this(initialCapacity, DEFAULT_LOAD_FACTOR, hs, eq);
+    public HashMap(int initialCapacity, Hasher<K> keysHasher, Equality<V> valuesEq) {
+        this(initialCapacity, DEFAULT_LOAD_FACTOR, keysHasher, valuesEq);
     }
 
     /**
      * Constructs an empty <tt>HashMap</tt> with the default initial capacity
      * (16) and the default load factor (0.75).
      *
-     * @param  hs the object with the implementations of 'equals' and
+     * @param  keysHasher the object with the implementations of 'equals' and
      *         'hashCode' operations for hashed keys
-     * @param  eq the object with the implementation of external comparison for values
+     * @param  valuesEq   the object with the implementation of external comparison for values
      */
-    public HashMap(Hasher<K> hs, Equality<V> eq) {
-        super(hs, eq);
+    public HashMap(Hasher<K> keysHasher, Equality<V> valuesEq) {
+        super(keysHasher, valuesEq);
         this.loadFactor = DEFAULT_LOAD_FACTOR; // all other fields defaulted
     }
 
@@ -430,23 +430,19 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      * hold the mappings in the specified <tt>Map</tt>.
      *
      * @param   m  the map whose mappings are to be placed in this map
-     * @param   hs the object with the implementations of 'equals' and
+     * @param   keysHasher the object with the implementations of 'equals' and
      *          'hashCode' operations for hashed keys
-     * @param   eq the object with the implementation of external comparison
+     * @param   valuesEq the object with the implementation of external comparison
      * @throws  NullPointerException if the specified map is null
      */
-    public HashMap(Map<? extends K, ? extends V> m, Hasher<K> hs, Equality<V> eq) {
-        super(hs, eq);
+    public HashMap(Map<? extends K, ? extends V> m, Hasher<K> keysHasher, Equality<V> valuesEq) {
+        super(keysHasher, valuesEq);
         this.loadFactor = DEFAULT_LOAD_FACTOR;
         putMapEntries(m, false);
     }
 
     /**
      * Implements Map.putAll and Map constructor
-     *
-     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
-     *          iterate through collection with iterator instead of initial
-     *          for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
      *
      * @param m the map
      * @param evict false when initially constructing this map, else
@@ -468,7 +464,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
                 Map.Entry<? extends K, ? extends V> e = it.next();
                 K key = e.getKey();
                 V value = e.getValue();
-                putVal(hash(key, hs), key, value, false, evict);
+                putVal(hash(key, keysHasher), key, value, false, evict);
             }
         }
     }
@@ -510,7 +506,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      */
     public V get(K key) {
         Node<K,V> e;
-        return (e = getNode(hash(key, hs), key)) == null ? null : e.value;
+        return (e = getNode(hash(key, keysHasher), key)) == null ? null : e.value;
     }
 
     /**
@@ -525,14 +521,14 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (first = tab[(n - 1) & hash]) != null) {
             if (first.hash == hash && // always check first node
-                ((k = first.key) == key || (key != null && hs.equals(key, k))))
+                ((k = first.key) == key || (key != null && keysHasher.equals(key, k))))
                 return first;
             if ((e = first.next) != null) {
                 if (first instanceof TreeNode)
                     return ((TreeNode<K,V>)first).getTreeNode(hash, key);
                 do {
                     if (e.hash == hash &&
-                        ((k = e.key) == key || (key != null && hs.equals((K) key, k))))
+                        ((k = e.key) == key || (key != null && keysHasher.equals((K) key, k))))
                         return e;
                 } while ((e = e.next) != null);
             }
@@ -549,7 +545,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      * key.
      */
     public boolean containsKey(K key) {
-        return getNode(hash(key, hs), key) != null;
+        return getNode(hash(key, keysHasher), key) != null;
     }
 
     /**
@@ -565,7 +561,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      *         previously associated <tt>null</tt> with <tt>key</tt>.)
      */
     public V put(K key, V value) {
-        return putVal(hash(key, hs), key, value, false, true);
+        return putVal(hash(key, keysHasher), key, value, false, true);
     }
 
     /**
@@ -588,7 +584,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
         else {
             Node<K,V> e; K k;
             if (p.hash == hash &&
-                ((k = p.key) == key || (key != null && hs.equals(key, k))))
+                ((k = p.key) == key || (key != null && keysHasher.equals(key, k))))
                 e = p;
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
@@ -601,7 +597,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
                         break;
                     }
                     if (e.hash == hash &&
-                        ((k = e.key) == key || (key != null && hs.equals(key, k))))
+                        ((k = e.key) == key || (key != null && keysHasher.equals(key, k))))
                         break;
                     p = e;
                 }
@@ -752,7 +748,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      */
     public V remove(K key) {
         Node<K,V> e;
-        return (e = removeNode(hash(key, hs), key, null, false, true)) == null ?
+        return (e = removeNode(hash(key, keysHasher), key, null, false, true)) == null ?
             null : e.value;
     }
 
@@ -773,7 +769,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
             if (p.hash == hash &&
-                ((k = p.key) == key || (key != null && hs.equals(key, k))))
+                ((k = p.key) == key || (key != null && keysHasher.equals(key, k))))
                 node = p;
             else if ((e = p.next) != null) {
                 if (p instanceof TreeNode)
@@ -782,7 +778,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
                     do {
                         if (e.hash == hash &&
                             ((k = e.key) == key ||
-                             (key != null && hs.equals(key, k)))) {
+                             (key != null && keysHasher.equals(key, k)))) {
                             node = e;
                             break;
                         }
@@ -791,7 +787,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
                 }
             }
             if (node != null && (!matchValue || (v = node.value) == value ||
-                                 (value != null && eq.equals(value, v)))) {
+                                 (value != null && valuesEq.equals(value, v)))) {
                 if (node instanceof TreeNode)
                     ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
                 else if (node == p)
@@ -835,7 +831,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
             for (int i = 0; i < tab.length; ++i) {
                 for (Node<K,V> e = tab[i]; e != null; e = e.next) {
                     if ((v = e.value) == value ||
-                        (value != null && eq.equals(value, v)))
+                        (value != null && valuesEq.equals(value, v)))
                         return true;
                 }
             }
@@ -861,7 +857,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
-            ks = new KeySet(hs);
+            ks = new KeySet(keysHasher);
             keySet = ks;
         }
         return ks;
@@ -877,7 +873,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
         public final Iterator<K> iterator()     { return new KeyIterator(); }
         public final boolean contains(K o) { return containsKey(o); }
         public final boolean remove(K key) {
-            return removeNode(hash(key, hs), key, null, false, true) != null;
+            return removeNode(hash(key, keysHasher), key, null, false, true) != null;
         }
     }
 
@@ -899,7 +895,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
     public Collection<V> values() {
         Collection<V> vs = values;
         if (vs == null) {
-            vs = new Values(eq);
+            vs = new Values(valuesEq);
             values = vs;
         }
         return vs;
@@ -934,7 +930,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      */
     public Set<Map.Entry<K,V>> entrySet() {
         Set<Map.Entry<K,V>> es;
-        return (es = entrySet) == null ? (entrySet = new EntrySet(new EqualityMapEntry<>(hs, eq))) : es;
+        return (es = entrySet) == null ? (entrySet = new EntrySet(new MapEntryEquality<>(keysHasher, valuesEq))) : es;
     }
 
     final class EntrySet extends AbstractSet<Map.Entry<K,V>> {
@@ -949,14 +945,14 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
         public final boolean contains(Map.Entry<K,V> o) {
             Map.Entry<K,V> e = o;
             K key = e.getKey();
-            Node<K,V> candidate = getNode(hash(key, hs), key);
+            Node<K,V> candidate = getNode(hash(key, keysHasher), key);
             return candidate != null && candidate.equalTo(e);
         }
         public final boolean remove(Map.Entry<K,V> o) {
             Map.Entry<K,V> e = o;
             K key = e.getKey();
             V value = e.getValue();
-            return removeNode(hash(key, hs), key, value, true, true) != null;
+            return removeNode(hash(key, keysHasher), key, value, true, true) != null;
         }
     }
 
@@ -1014,7 +1010,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
                 throw new ConcurrentModificationException();
             current = null;
             K key = p.key;
-            removeNode(hash(key, hs), key, null, false, false);
+            removeNode(hash(key, keysHasher), key, null, false, false);
             expectedModCount = modCount;
         }
     }
@@ -1048,22 +1044,22 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
 
     // Create a regular (non-tree) node
     Node<K,V> newNode(int hash, K key, V value, Node<K,V> next) {
-        return new Node<>(hash, key, value, next, hs, eq);
+        return new Node<>(hash, key, value, next, keysHasher, valuesEq);
     }
 
     // For conversion from TreeNodes to plain nodes
     Node<K,V> replacementNode(Node<K,V> p, Node<K,V> next) {
-        return new Node<>(p.hash, p.key, p.value, next, hs, eq);
+        return new Node<>(p.hash, p.key, p.value, next, keysHasher, valuesEq);
     }
 
     // Create a tree bin node
     TreeNode<K,V> newTreeNode(int hash, K key, V value, Node<K,V> next) {
-        return new TreeNode<>(hash, key, value, next, hs, eq);
+        return new TreeNode<>(hash, key, value, next, keysHasher, valuesEq);
     }
 
     // For treeifyBin
     TreeNode<K,V> replacementTreeNode(Node<K,V> p, Node<K,V> next) {
-        return new TreeNode<>(p.hash, p.key, p.value, next, hs, eq);
+        return new TreeNode<>(p.hash, p.key, p.value, next, keysHasher, valuesEq);
     }
 
     /**
@@ -1092,14 +1088,14 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
      * extends Node) so can be used as extension of either regular or
      * linked node.
      */
-    static final class TreeNode<K extends ManagedObject,V extends ManagedObject> extends LinkedHashMap.LinkedHashMapEntry<K,V> {
+    static final class TreeNode<K extends ManagedObject, V extends ManagedObject> extends LinkedHashMap.LinkedHashMapEntry<K,V> {
         TreeNode<K,V> parent;  // red-black tree links
         TreeNode<K,V> left;
         TreeNode<K,V> right;
         TreeNode<K,V> prev;    // needed to unlink next upon deletion
         boolean red;
-        TreeNode(int hash, K key, V val, Node<K,V> next, Hasher<K> hs, Equality<V> eq) {
-            super(hash, key, val, next, hs, eq);
+        TreeNode(int hash, K key, V val, Node<K,V> next, Hasher<K> keysHasher, Equality<V> valuesEq) {
+            super(hash, key, val, next, keysHasher, valuesEq);
         }
 
         /**
@@ -1116,7 +1112,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
         /**
          * Ensures that the given root is the first node of its bin.
          */
-        static <K extends ManagedObject,V extends ManagedObject> void moveRootToFront(Node<K,V>[] tab, TreeNode<K,V> root) {
+        static <K extends ManagedObject, V extends ManagedObject> void moveRootToFront(Node<K,V>[] tab, TreeNode<K,V> root) {
             int n;
             if (root != null && tab != null && (n = tab.length) > 0) {
                 int index = (n - 1) & root.hash;
@@ -1151,7 +1147,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
                     p = pl;
                 else if (ph < h)
                     p = pr;
-                else if ((pk = p.key) == k || (k != null && hs.equals(k, pk)))
+                else if ((pk = p.key) == k || (k != null && keysHasher.equals(k, pk)))
                     return p;
                 else if (pl == null)
                     p = pr;
@@ -1258,7 +1254,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
                     dir = -1;
                 else if (ph < h)
                     dir = 1;
-                else if ((pk = p.key) == k || (k != null && hs.equals(k, pk)))
+                else if ((pk = p.key) == k || (k != null && keysHasher.equals(k, pk)))
                     return p;
                 else {
                     if (!searched) {
@@ -1456,7 +1452,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
         /* ------------------------------------------------------------ */
         // Red-black tree methods, all adapted from CLR
 
-        static <K extends ManagedObject,V extends ManagedObject> TreeNode<K,V> rotateLeft(TreeNode<K,V> root,
+        static <K extends ManagedObject, V extends ManagedObject> TreeNode<K,V> rotateLeft(TreeNode<K,V> root,
                                               TreeNode<K,V> p) {
             TreeNode<K,V> r, pp, rl;
             if (p != null && (r = p.right) != null) {
@@ -1474,7 +1470,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
             return root;
         }
 
-        static <K extends ManagedObject,V extends ManagedObject> TreeNode<K,V> rotateRight(TreeNode<K,V> root,
+        static <K extends ManagedObject, V extends ManagedObject> TreeNode<K,V> rotateRight(TreeNode<K,V> root,
                                                TreeNode<K,V> p) {
             TreeNode<K,V> l, pp, lr;
             if (p != null && (l = p.left) != null) {
@@ -1492,7 +1488,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
             return root;
         }
 
-        static <K extends ManagedObject,V extends ManagedObject> TreeNode<K,V> balanceInsertion(TreeNode<K,V> root,
+        static <K extends ManagedObject, V extends ManagedObject> TreeNode<K,V> balanceInsertion(TreeNode<K,V> root,
                                                     TreeNode<K,V> x) {
             x.red = true;
             for (TreeNode<K,V> xp, xpp, xppl, xppr;;) {
@@ -1547,7 +1543,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
             }
         }
 
-        static <K extends ManagedObject,V extends ManagedObject> TreeNode<K,V> balanceDeletion(TreeNode<K,V> root,
+        static <K extends ManagedObject, V extends ManagedObject> TreeNode<K,V> balanceDeletion(TreeNode<K,V> root,
                                                    TreeNode<K,V> x) {
             for (TreeNode<K,V> xp, xpl, xpr;;)  {
                 if (x == null || x == root)
@@ -1642,7 +1638,7 @@ public class HashMap<K extends ManagedObject,V extends ManagedObject> extends Ab
         /**
          * Recursive invariant check
          */
-        static <K extends ManagedObject,V extends ManagedObject> boolean checkInvariants(TreeNode<K,V> t) {
+        static <K extends ManagedObject, V extends ManagedObject> boolean checkInvariants(TreeNode<K,V> t) {
             TreeNode<K,V> tp = t.parent, tl = t.left, tr = t.right,
                 tb = t.prev, tn = (TreeNode<K,V>)t.next;
             if (tb != null && tb.next != t)

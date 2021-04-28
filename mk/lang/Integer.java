@@ -28,11 +28,7 @@
 package mk.lang;
 
 /**
- * The {@code Integer} class wraps a value of the primitive type
- * {@code int} in an object. An object of type {@code Integer}
- * contains a single field whose type is {@code int}.
- *
- * <p>This class provides two constants useful when
+ * <p>This class provides one constant useful when
  * dealing with an {@code int} and used in collections code.
  *
  * @author  Lee Boynton
@@ -42,12 +38,6 @@ package mk.lang;
  * @since JDK1.0
  */
 public final class Integer {
-    /**
-     * A constant holding the minimum value an {@code int} can
-     * have, -2<sup>31</sup>.
-     */
-    public static final int   MIN_VALUE = 0x80000000;
-
     /**
      * A constant holding the maximum value an {@code int} can
      * have, 2<sup>31</sup>-1.

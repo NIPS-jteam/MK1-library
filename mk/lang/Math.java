@@ -66,9 +66,7 @@ public final class Math {
     }
 
     /**
-     * Returns the smaller of two {@code int} values. That is,
-     * the result the argument closer to the value of
-     * {@link Integer#MIN_VALUE}.  If the arguments have the same
+     * Returns the smaller of two {@code int} values. If the arguments have the same
      * value, the result is that same value.
      *
      * @param   a   an argument.

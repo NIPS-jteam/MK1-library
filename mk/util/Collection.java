@@ -27,7 +27,6 @@
 package mk.util;
 
 import mk.lang.Equality;
-import mk.lang.Iterable;
 import mk.lang.ManagedObject;
 
 /**
@@ -140,7 +139,7 @@ import mk.lang.ManagedObject;
  * @since 1.2
  */
 
-public interface Collection<E extends ManagedObject> extends Iterable<E> {
+public interface Collection<E extends ManagedObject> {
     // Query Operations
 
     /**
@@ -370,4 +369,10 @@ public interface Collection<E extends ManagedObject> extends Iterable<E> {
      *         is not supported by this collection
      */
     void clear();
+
+    /**
+     * Returns external implementation of object comparison.
+     * @return external implementation of object comparison.
+     */
+    Equality<E> getEquality();
 }

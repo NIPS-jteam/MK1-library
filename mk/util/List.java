@@ -602,10 +602,4 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      *         fromIndex > toIndex})
      */
     List<E> subList(int fromIndex, int toIndex);
-
-    /**
-     * Returns external implementation of object comparison.
-     * @return external implementation of object comparison.
-     */
-    Equality<E> getEquality();
 }

@@ -26,7 +26,6 @@
 
 package mk.util;
 
-import mk.lang.Iterable;
 import mk.lang.ManagedObject;
 
 // Android-changed: removed link to collections framework docs

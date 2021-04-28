@@ -97,7 +97,7 @@ import mk.lang.ManagedObject;
  * @param <V> the type of mapped values
  * @since 1.6
  */
-public interface NavigableMap<K extends ManagedObject,V extends ManagedObject> extends SortedMap<K,V> {
+public interface NavigableMap<K extends ManagedObject, V extends ManagedObject> extends SortedMap<K,V> {
     /**
      * Returns a key-value mapping associated with the greatest key
      * strictly less than the given key, or {@code null} if there is

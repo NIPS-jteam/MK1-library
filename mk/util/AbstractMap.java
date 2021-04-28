@@ -69,29 +69,29 @@ import mk.lang.ManagedObject;
  * @since 1.2
  */
 
-public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObject> extends ManagedObject implements Map<K,V> {
+public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObject> extends ManagedObject implements Map<K,V> {
     /**
      * External implementations of 'equals' and 'hashCode' operations
      * for hashed keys
      */
-    protected Hasher<K> hs;
+    protected Hasher<K> keysHasher;
 
     /**
      * External implementation of object comparison for values
      */
-    protected Equality<V> eq;
+    protected Equality<V> valuesEq;
 
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
      *
-     * @param  hs         the object with the implementations of 'equals'
+     * @param  keysHasher the object with the implementations of 'equals'
      *         and 'hashCode' operations for hashed keys
-     * @param  eq         the object with the implementation of external comparison
+     * @param  valuesEq   the object with the implementation of external comparison
      */
-    protected AbstractMap(Hasher<K> hs, Equality<V> eq) {
-        this.hs = hs;
-        this.eq = eq;
+    protected AbstractMap(Hasher<K> keysHasher, Equality<V> valuesEq) {
+        this.keysHasher = keysHasher;
+        this.valuesEq = valuesEq;
     }
 
     // Query Operations
@@ -140,7 +140,7 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
         } else {
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (eq.equals((V) value, e.getValue()))
+                if (valuesEq.equals(value, e.getValue()))
                     return true;
             }
         }
@@ -172,7 +172,7 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
         } else {
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (hs.equals(key, e.getKey()))
+                if (keysHasher.equals(key, e.getKey()))
                     return true;
             }
         }
@@ -204,7 +204,7 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
         } else {
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (hs.equals((K) key, e.getKey()))
+                if (keysHasher.equals(key, e.getKey()))
                     return e.getValue();
             }
         }
@@ -264,7 +264,7 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
         } else {
             while (correctEntry==null && i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (hs.equals((K) key, e.getKey()))
+                if (keysHasher.equals(key, e.getKey()))
                     correctEntry = e;
             }
         }
@@ -292,18 +292,13 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
      * <tt>UnsupportedOperationException</tt> if this map does not support
      * the <tt>put</tt> operation and the specified map is nonempty.
      *
-     * <p>Note: to cope with an error 'java: for-each not applicable to expression type'
-     *          iterate through collection with iterator instead of initial
-     *          for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
-     *              put(e.getKey(), e.getValue());
-     *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      * @throws IllegalArgumentException      {@inheritDoc}
      */
     public void putAll(Map<? extends K, ? extends V> m) {
-        for (Iterator<? extends Entry<? extends K, ? extends V>> it = m.entrySet().iterator(); it.hasNext(); ) {
+        for (Iterator<? extends Map.Entry<? extends K, ? extends V>> it = m.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<? extends K, ? extends V> e = it.next();
             put(e.getKey(), e.getValue());
         }
@@ -374,7 +369,7 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
-            ks = new AbstractSet<K>(hs) {
+            ks = new AbstractSet<K>(keysHasher) {
                 public Iterator<K> iterator() {
                     return new Iterator<K>() {
                         private Iterator<Entry<K,V>> i = entrySet().iterator();
@@ -433,7 +428,7 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
     public Collection<V> values() {
         Collection<V> vals = values;
         if (vals == null) {
-            vals = new AbstractCollection<V>(eq) {
+            vals = new AbstractCollection<V>(valuesEq) {
                 public Iterator<V> iterator() {
                     return new Iterator<V>() {
                         private Iterator<Entry<K,V>> i = entrySet().iterator();
@@ -476,95 +471,6 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
     public abstract Set<Entry<K,V>> entrySet();
 
     /**
-     * Utility method for SimpleEntry and SimpleImmutableEntry.
-     * Test for equality, checking for nulls.
-     *
-     * NB: Do not replace with Object.equals until JDK-8015417 is resolved.
-     */
-    private static <T extends ManagedObject> boolean eq(T o1, T o2, Equality<T> eq) {
-        return o1 == null ? o2 == null : eq.equals(o1, o2);
-    }
-
-    // Implementation Note: SimpleEntry and SimpleImmutableEntry
-    // are distinct unrelated classes, even though they share
-    // some code. Since you can't add or subtract final-ness
-    // of a field in a subclass, they can't share representations,
-    // and the amount of duplicated code is too small to warrant
-    // exposing a common abstract class.
-
-
-    /**
-     * An Entry maintaining a key and a value.  The value may be
-     * changed using the <tt>setValue</tt> method.  This class
-     * facilitates the process of building custom map
-     * implementations. For example, it may be convenient to return
-     * arrays of <tt>SimpleEntry</tt> instances in method
-     * <tt>Map.entrySet().toArray</tt>.
-     *
-     * @since 1.6
-     */
-    public static class SimpleEntry<K extends ManagedObject,V extends ManagedObject>
-        extends Entry<K,V>
-    {
-        private final K key;
-        private V value;
-
-        /**
-         * Creates an entry representing a mapping from the specified
-         * key to the specified value.
-         *
-         * @param key the key represented by this entry
-         * @param value the value represented by this entry
-         */
-        public SimpleEntry(K key, V value) {
-            this.key   = key;
-            this.value = value;
-        }
-
-        /**
-         * Creates an entry representing the same mapping as the
-         * specified entry.
-         *
-         * @param entry the entry to copy
-         */
-        public SimpleEntry(Entry<? extends K, ? extends V> entry) {
-            this.key   = entry.getKey();
-            this.value = entry.getValue();
-        }
-
-        /**
-         * Returns the key corresponding to this entry.
-         *
-         * @return the key corresponding to this entry
-         */
-        public K getKey() {
-            return key;
-        }
-
-        /**
-         * Returns the value corresponding to this entry.
-         *
-         * @return the value corresponding to this entry
-         */
-        public V getValue() {
-            return value;
-        }
-
-        /**
-         * Replaces the value corresponding to this entry with the specified
-         * value.
-         *
-         * @param value new value to be stored in this entry
-         * @return the old value corresponding to the entry
-         */
-        public V setValue(V value) {
-            V oldValue = this.value;
-            this.value = value;
-            return oldValue;
-        }
-    }
-
-    /**
      * An Entry maintaining an immutable key and value.  This class
      * does not support method <tt>setValue</tt>.  This class may be
      * convenient in methods that return thread-safe snapshots of
@@ -572,7 +478,7 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
      *
      * @since 1.6
      */
-    public static class SimpleImmutableEntry<K extends ManagedObject,V extends ManagedObject>
+    public static class SimpleImmutableEntry<K extends ManagedObject, V extends ManagedObject>
         extends Entry<K,V>
     {
         private final K key;
@@ -637,24 +543,24 @@ public abstract class AbstractMap<K extends ManagedObject,V extends ManagedObjec
     /**
      * Implementation of Map.Entry<K, V> object comparison
      */
-    public static class EqualityMapEntry<K extends ManagedObject,V extends ManagedObject> implements Equality<Map.Entry<K, V>> {
-        private Hasher<K> hs;
-        private Equality<V> eq;
+    public static class MapEntryEquality<K extends ManagedObject, V extends ManagedObject> implements Equality<Map.Entry<K, V>> {
+        private Hasher<K> keysHasher;
+        private Equality<V> valuesEq;
 
-        EqualityMapEntry(Hasher<K> h, Equality<V> e){
-            hs = h;
-            eq = e;
+        MapEntryEquality(Hasher<K> h, Equality<V> e){
+            keysHasher = h;
+            valuesEq = e;
         }
 
         @Override
         public boolean equals(Map.Entry<K, V> a, Map.Entry<K, V> b) {
             if (a == b)
                 return true;
-            if (a instanceof Map.Entry) {
-                if (((a.getKey() != null && hs.equals(a.getKey(),b.getKey()))
-                        && (a.getValue() != null && eq.equals(a.getValue(), b.getValue()))))
-                    return true;
-            }
+
+            if (a != null && b != null &&
+                    keysHasher.equals(a.getKey(), b.getKey()) && valuesEq.equals(a.getValue(), b.getValue()))
+                return true;
+
             return false;
         }
     }

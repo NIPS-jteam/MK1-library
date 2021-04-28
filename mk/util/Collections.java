@@ -27,7 +27,6 @@
 
 package mk.util;
 
-import mk.lang.Boolean;
 import mk.lang.Equality;
 import mk.lang.Hasher;
 import mk.lang.ManagedObject;
@@ -671,6 +670,10 @@ public class Collections {
         public void clear() {
             throw new UnsupportedOperationException();
         }
+        @Override
+        public Equality<E> getEquality() {
+            return c.getEquality();
+        }
     }
 
     /**
@@ -824,11 +827,6 @@ public class Collections {
         public List<E> subList(int fromIndex, int toIndex) {
             return new UnmodifiableList<>(list.subList(fromIndex, toIndex));
         }
-
-        @Override
-        public Equality<E> getEquality() {
-            return (Equality<E>) list.getEquality();
-        }
     }
 
     /**
@@ -860,14 +858,14 @@ public class Collections {
      * @param  m the map for which an unmodifiable view is to be returned.
      * @return an unmodifiable view of the specified map.
      */
-    public static <K extends ManagedObject,V extends ManagedObject> Map<K,V> unmodifiableMap(Map<K,V> m) {
+    public static <K extends ManagedObject, V extends ManagedObject> Map<K,V> unmodifiableMap(Map<K,V> m) {
         return new UnmodifiableMap<>(m);
     }
 
     /**
      * @serial include
      */
-    private static class UnmodifiableMap<K extends ManagedObject,V extends ManagedObject>
+    private static class UnmodifiableMap<K extends ManagedObject, V extends ManagedObject>
             extends ManagedObject
             implements Map<K,V> {
         private final Map<K,V> m;
@@ -927,7 +925,7 @@ public class Collections {
          *
          * @serial include
          */
-        static class UnmodifiableEntrySet<K extends ManagedObject,V extends ManagedObject>
+        static class UnmodifiableEntrySet<K extends ManagedObject, V extends ManagedObject>
             extends UnmodifiableSet<Map.Entry<K,V>> {
 
             @SuppressWarnings({"unchecked", "rawtypes"})
@@ -978,10 +976,6 @@ public class Collections {
              * The next two methods are overridden to protect against
              * an unscrupulous List whose contains(E o) method senses
              * when o is a Map.Entry, and calls o.setValue.
-             *
-             * Note: to cope with an error 'java: for-each not applicable to expression type'
-             *       iterate through collection with iterator instead of initial
-             *       for (Object e : coll) {
              */
             public boolean containsAll(Collection<? extends Map.Entry<K,V>> coll) {
                 for (Iterator it = coll.iterator(); it.hasNext(); ) {
@@ -999,7 +993,7 @@ public class Collections {
              * an ill-behaved Map.Entry that attempts to modify another
              * Map Entry when asked to perform an equality check.
              */
-            private static class UnmodifiableEntry<K extends ManagedObject,V extends ManagedObject> extends Map.Entry<K,V> {
+            private static class UnmodifiableEntry<K extends ManagedObject, V extends ManagedObject> extends Map.Entry<K,V> {
                 private Map.Entry<? extends K, ? extends V> e;
 
                 UnmodifiableEntry(Map.Entry<? extends K, ? extends V> e)
@@ -1032,14 +1026,14 @@ public class Collections {
      *        returned.
      * @return an unmodifiable view of the specified sorted map.
      */
-    public static <K extends ManagedObject,V extends ManagedObject> SortedMap<K,V> unmodifiableSortedMap(SortedMap<K,V> m) {
+    public static <K extends ManagedObject, V extends ManagedObject> SortedMap<K,V> unmodifiableSortedMap(SortedMap<K,V> m) {
         return new UnmodifiableSortedMap<>(m);
     }
 
     /**
      * @serial include
      */
-    static class UnmodifiableSortedMap<K extends ManagedObject,V extends ManagedObject>
+    static class UnmodifiableSortedMap<K extends ManagedObject, V extends ManagedObject>
           extends UnmodifiableMap<K,V>
           implements SortedMap<K,V> {
 
@@ -1322,14 +1316,14 @@ public class Collections {
      * @since 1.5
      */
     @SuppressWarnings("unchecked")
-    public static final <K extends ManagedObject,V extends ManagedObject> Map<K,V> emptyMap() {
+    public static final <K extends ManagedObject, V extends ManagedObject> Map<K,V> emptyMap() {
         return (Map<K,V>) EMPTY_MAP;
     }
 
     /**
      * @serial include
      */
-    private static class EmptyMap<K extends ManagedObject,V extends ManagedObject>
+    private static class EmptyMap<K extends ManagedObject, V extends ManagedObject>
         extends AbstractMap<K,V>
     {
         EmptyMap() {
@@ -1457,20 +1451,20 @@ public class Collections {
      * @param <V> the class of the map values
      * @param key the sole key to be stored in the returned map.
      * @param value the value to which the returned map maps <tt>key</tt>.
-     * @param hs the object with the implementations of 'equals' and 'hashCode' operations for hashed keys
-     * @param eq the object with the implementation of external comparison.
+     * @param keysHasher the object with the implementations of 'equals' and 'hashCode' operations for hashed keys
+     * @param valuesEq the object with the implementation of external comparison.
      * @return an immutable map containing only the specified key-value
      *         mapping.
      * @since 1.3
      */
-    public static <K extends ManagedObject,V extends ManagedObject> Map<K,V> singletonMap(K key, V value, Hasher<K> hs, Equality<V> eq) {
-        return new SingletonMap<>(key, value, hs, eq);
+    public static <K extends ManagedObject, V extends ManagedObject> Map<K,V> singletonMap(K key, V value, Hasher<K> keysHasher, Equality<V> valuesEq) {
+        return new SingletonMap<>(key, value, keysHasher, valuesEq);
     }
 
     /**
      * @serial include
      */
-    private static class SingletonMap<K extends ManagedObject,V extends ManagedObject>
+    private static class SingletonMap<K extends ManagedObject, V extends ManagedObject>
           extends AbstractMap<K,V> {
 
         private final K k;
@@ -1484,9 +1478,9 @@ public class Collections {
 
         public int size()                                           {return 1;}
         public boolean isEmpty()                                {return false;}
-        public boolean containsKey(K key)             {return eq(key, k, hs);}
-        public boolean containsValue(V value)       {return eq(value, v, eq);}
-        public V get(K key)              {return (eq(key, k, hs) ? v : null);}
+        public boolean containsKey(K key)             {return eq(key, k, keysHasher);}
+        public boolean containsValue(V value)       {return eq(value, v, valuesEq);}
+        public V get(K key)              {return (eq(key, k, keysHasher) ? v : null);}
 
         private transient Set<K> keySet;
         private transient Set<Map.Entry<K,V>> entrySet;
@@ -1494,20 +1488,20 @@ public class Collections {
 
         public Set<K> keySet() {
             if (keySet==null)
-                keySet = singleton(k, hs);
+                keySet = singleton(k, keysHasher);
             return keySet;
         }
 
         public Set<Map.Entry<K,V>> entrySet() {
             if (entrySet==null)
                 entrySet = Collections.<Map.Entry<K,V>>singleton(
-                    new SimpleImmutableEntry<>(k, v), new EqualityMapEntry<>(hs, eq));
+                    new SimpleImmutableEntry<>(k, v), new MapEntryEquality<>(keysHasher, valuesEq));
             return entrySet;
         }
 
         public Collection<V> values() {
             if (values==null)
-                values = singleton(v, eq);
+                values = singleton(v, valuesEq);
             return values;
         }
     }
@@ -1684,72 +1678,5 @@ public class Collections {
         for (T element : elements)
             result |= c.add(element);
         return result;
-    }
-
-    /**
-     * Returns a set backed by the specified map.  The resulting set displays
-     * the same ordering, concurrency, and performance characteristics as the
-     * backing map.  In essence, this factory method provides a {@link Set}
-     * implementation corresponding to any {@link Map} implementation.  There
-     * is no need to use this method on a {@link Map} implementation that
-     * already has a corresponding {@link Set} implementation (such as {@link
-     * HashMap} or {@link TreeMap}).
-     *
-     * <p>Each method invocation on the set returned by this method results in
-     * exactly one method invocation on the backing map or its <tt>keySet</tt>
-     * view, with one exception.  The <tt>addAll</tt> method is implemented
-     * as a sequence of <tt>put</tt> invocations on the backing map.
-     *
-     * <p>The specified map must be empty at the time this method is invoked,
-     * and should not be accessed directly after this method returns.  These
-     * conditions are ensured if the map is created empty, passed directly
-     * to this method, and no reference to the map is retained, as illustrated
-     * in the following code fragment:
-     * <pre>
-     *    Set&lt;Object&gt; weakHashSet = Collections.newSetFromMap(
-     *        new WeakHashMap&lt;Object, Boolean&gt;());
-     * </pre>
-     *
-     * @param <E> the class of the map keys and of the objects in the
-     *        returned set
-     * @param map the backing map
-     * @param eq  the object with the implementation of external comparison
-     * @return the set backed by the map
-     * @throws IllegalArgumentException if <tt>map</tt> is not empty
-     * @since 1.6
-     */
-    public static <E extends ManagedObject> Set<E> newSetFromMap(Map<E, Boolean> map, Equality<E> eq) {
-        return new SetFromMap<>(map, eq);
-    }
-
-    /**
-     * @serial include
-     */
-    private static class SetFromMap<E extends ManagedObject> extends AbstractSet<E>
-        implements Set<E>
-    {
-        private final Map<E, Boolean> m;  // The backing map
-        private transient Set<E> s;       // Its keySet
-
-        SetFromMap(Map<E, Boolean> map, Equality<E> eq) {
-            super(eq);
-            if (!map.isEmpty())
-                throw new IllegalArgumentException("Map is non-empty");
-            m = map;
-            s = map.keySet();
-        }
-
-        public void clear()               {        m.clear(); }
-        public int size()                 { return m.size(); }
-        public boolean isEmpty()          { return m.isEmpty(); }
-        public boolean contains(E o) { return m.containsKey(o); }
-        public boolean remove(E o)   { return m.remove(o) != null; }
-        public boolean add(E e) { return m.put(e, Boolean.TRUE) == null; }
-        public Iterator<E> iterator()     { return s.iterator(); }
-        public ManagedObject[] toArray()         { return s.toArray(); }
-        public boolean containsAll(Collection<? extends E> c) {return s.containsAll(c);}
-        public boolean removeAll(Collection<E> c)   {return s.removeAll(c);}
-        public boolean retainAll(Collection<E> c)   {return s.retainAll(c);}
-        // addAll is the only inherited implementation
     }
 }

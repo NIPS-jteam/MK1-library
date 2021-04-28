@@ -107,7 +107,7 @@ import mk.lang.ManagedObject;
  * @since 1.2
  */
 
-public interface SortedMap<K extends ManagedObject,V extends ManagedObject> extends Map<K,V> {
+public interface SortedMap<K extends ManagedObject, V extends ManagedObject> extends Map<K,V> {
     /**
      * Returns the comparator used to order the keys in this map.
      *
