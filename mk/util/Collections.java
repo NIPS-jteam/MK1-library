@@ -30,6 +30,7 @@ package mk.util;
 import mk.lang.Equality;
 import mk.lang.Hasher;
 import mk.lang.ManagedObject;
+import mk.lang.System;
 
 /**
  * This class consists exclusively of static methods that operate on or return
@@ -134,9 +135,7 @@ public class Collections {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T extends ManagedObject> void sort(List<T> list, Comparator<? super T> c) {
-        // BEGIN Android-changed: List.sort() vs. Collections.sort() app compat.
         list.sort(c);
-        // END Android-changed: List.sort() vs. Collections.sort() app compat.
     }
 
     /**
@@ -249,8 +248,7 @@ public class Collections {
      * @throws UnsupportedOperationException if the specified list or
      *         its list-iterator does not support the <tt>set</tt> operation.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static void reverse(List<?> list) {
+    public static <T extends ManagedObject> void reverse(List<T> list) {
         int size = list.size();
         if (size < REVERSE_THRESHOLD || list instanceof RandomAccess) {
             for (int i=0, mid=size>>1, j=size-1; i<mid; i++, j--)
@@ -259,10 +257,10 @@ public class Collections {
             // instead of using a raw type here, it's possible to capture
             // the wildcard but it will require a call to a supplementary
             // private method
-            ListIterator fwd = list.listIterator();
-            ListIterator rev = list.listIterator(size);
+            ListIterator<T> fwd = list.listIterator();
+            ListIterator<T> rev = list.listIterator(size);
             for (int i=0, mid=list.size()>>1; i<mid; i++) {
-                ManagedObject tmp = fwd.next();
+                T tmp = fwd.next();
                 fwd.set(rev.previous());
                 rev.set(tmp);
             }
@@ -282,22 +280,12 @@ public class Collections {
      *         || j &lt; 0 || j &gt;= list.size()).
      * @since 1.4
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static void swap(List<?> list, int i, int j) {
+    public static <T extends ManagedObject> void swap(List<T> list, int i, int j) {
         // instead of using a raw type here, it's possible to capture
         // the wildcard but it will require a call to a supplementary
         // private method
-        final List l = list;
+        final List<T> l = list;
         l.set(i, l.set(j, l.get(i)));
-    }
-
-    /**
-     * Swaps the two specified elements in the specified array.
-     */
-    private static void swap(ManagedObject[] arr, int i, int j) {
-        ManagedObject tmp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = tmp;
     }
 
     /**
@@ -312,7 +300,7 @@ public class Collections {
      * @throws UnsupportedOperationException if the specified list or its
      *         list-iterator does not support the <tt>set</tt> operation.
      */
-    public static <T> void fill(List<? super T> list, T obj) {
+    public static <T extends ManagedObject> void fill(List<? super T> list, T obj) {
         int size = list.size();
 
         if (size < FILL_THRESHOLD || list instanceof RandomAccess) {
@@ -383,7 +371,6 @@ public class Collections {
      *         not <i>mutually comparable</i> using the specified comparator.
      * @throws NoSuchElementException if the collection is empty.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T extends ManagedObject> T min(Collection<? extends T> coll, Comparator<? super T> comp) {
         Iterator<? extends T> i = coll.iterator();
         T candidate = i.next();
@@ -416,7 +403,6 @@ public class Collections {
      *         not <i>mutually comparable</i> using the specified comparator.
      * @throws NoSuchElementException if the collection is empty.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T extends ManagedObject> T max(Collection<? extends T> coll, Comparator<? super T> comp) {
         Iterator<? extends T> i = coll.iterator();
         T candidate = i.next();
@@ -484,7 +470,7 @@ public class Collections {
      *         its list-iterator does not support the <tt>set</tt> operation.
      * @since 1.4
      */
-    public static void rotate(List<?> list, int distance) {
+    public static <T extends ManagedObject> void rotate(List<T> list, int distance) {
         if (list instanceof RandomAccess || list.size() < ROTATE_THRESHOLD)
             rotate1(list, distance);
         else
@@ -514,7 +500,7 @@ public class Collections {
         }
     }
 
-    private static void rotate2(List<?> list, int distance) {
+    private static <T extends ManagedObject> void rotate2(List<T> list, int distance) {
         int size = list.size();
         if (size == 0)
             return;
@@ -918,10 +904,9 @@ public class Collections {
         static class UnmodifiableEntrySet<K extends ManagedObject, V extends ManagedObject>
             extends UnmodifiableSet<Map.Entry<K,V>> {
 
-            @SuppressWarnings({"unchecked", "rawtypes"})
-            UnmodifiableEntrySet(Set<? extends Map.Entry<? extends K, ? extends V>> s) {
+            UnmodifiableEntrySet(Set<Map.Entry<K,V>> s) {
                 // Need to cast to raw in order to work around a limitation in the type system
-                super((Set)s);
+                super(s);
             }
 
             public Iterator<Map.Entry<K,V>> iterator() {
@@ -959,7 +944,7 @@ public class Collections {
              * setValue method.
              */
             public boolean contains(Map.Entry<K,V> o) {
-                return c.contains((Map.Entry<K,V>) new UnmodifiableEntry<>(o));
+                return c.contains(new UnmodifiableEntry<>(o));
             }
 
             /**
@@ -968,8 +953,8 @@ public class Collections {
              * when o is a Map.Entry, and calls o.setValue.
              */
             public boolean containsAll(Collection<? extends Map.Entry<K,V>> coll) {
-                for (Iterator it = coll.iterator(); it.hasNext(); ) {
-                    Map.Entry<K,V> e = (Map.Entry<K,V>) it.next();
+                for (Iterator<? extends Map.Entry<K,V>> it = coll.iterator(); it.hasNext(); ) {
+                    Map.Entry<K,V> e = it.next();
                     if (!contains(e)) // Invokes safe contains() above
                         return false;
                 }
@@ -1142,7 +1127,7 @@ public class Collections {
     public static class IdentityHasher<T extends ManagedObject> extends IdentityEquality<T> implements Hasher<T> {
         @Override
         public int getHashCode(T o) {
-            return 1;
+            return System.identityHashCode(o);
         }
     }
 
@@ -1151,8 +1136,7 @@ public class Collections {
      *
      * @see #emptySet()
      */
-    @SuppressWarnings("rawtypes")
-    public static final Set EMPTY_SET = new EmptySet<>();
+    public static final Set<ManagedObject> EMPTY_SET = new EmptySet<ManagedObject>();
 
     /**
      * Returns an empty set (immutable).
@@ -1185,7 +1169,7 @@ public class Collections {
         extends AbstractSet<E>
     {
         EmptySet() {
-            super(new IdentityEquality<E>());
+            super(new IdentityEquality<>());
         }
         public Iterator<E> iterator() { return emptyIterator(); }
 
@@ -1196,12 +1180,6 @@ public class Collections {
         public boolean containsAll(Collection<? extends E> c) { return c.isEmpty(); }
 
         public ManagedObject[] toArray() { return new ManagedObject[0]; }
-
-        public <T extends ManagedObject> T[] toArray(T[] a) {
-            if (a.length > 0)
-                a[0] = null;
-            return a;
-        }
     }
 
     /**
@@ -1209,8 +1187,7 @@ public class Collections {
      *
      * @see #emptyList()
      */
-    @SuppressWarnings("rawtypes")
-    public static final List EMPTY_LIST = new EmptyList<>();
+    public static final List<ManagedObject> EMPTY_LIST = new EmptyList<ManagedObject>();
 
     /**
      * Returns an empty list (immutable).
@@ -1245,7 +1222,7 @@ public class Collections {
         implements RandomAccess {
 
         EmptyList() {
-            super(new IdentityEquality<E>());
+            super(new IdentityEquality<>());
         }
 
         public Iterator<E> iterator() {
@@ -1263,12 +1240,6 @@ public class Collections {
 
         public ManagedObject[] toArray() { return new ManagedObject[0]; }
 
-        public <T extends ManagedObject> T[] toArray(T[] a) {
-            if (a.length > 0)
-                a[0] = null;
-            return a;
-        }
-
         public E get(int index) {
             throw new IndexOutOfBoundsException("Index: "+index);
         }
@@ -1284,8 +1255,7 @@ public class Collections {
      * @see #emptyMap()
      * @since 1.3
      */
-    @SuppressWarnings("rawtypes")
-    public static final Map EMPTY_MAP = new EmptyMap<>();
+    public static final Map<ManagedObject, ManagedObject> EMPTY_MAP = new EmptyMap<ManagedObject, ManagedObject>();
 
     /**
      * Returns an empty map (immutable).
@@ -1317,7 +1287,7 @@ public class Collections {
         extends AbstractMap<K,V>
     {
         EmptyMap() {
-            super(new IdentityHasher<K>(), new IdentityEquality<V>());
+            super(new IdentityHasher<>(), new IdentityEquality<>());
         }
 
         public int size()                          {return 0;}
@@ -1372,8 +1342,8 @@ public class Collections {
 
         private final E element;
 
-        SingletonSet(E e, Equality<E> equality) {
-            super(equality);
+        SingletonSet(E e, Equality<E> eq) {
+            super(eq);
             element = e;
         }
 
@@ -1408,8 +1378,8 @@ public class Collections {
 
         private final E element;
 
-        SingletonList(E obj, Equality<E> e) {
-            super(e);
+        SingletonList(E obj, Equality<E> eq) {
+            super(eq);
             element = obj;
         }
 
@@ -1460,8 +1430,8 @@ public class Collections {
         private final K k;
         private final V v;
 
-        SingletonMap(K key, V value, Hasher<K> h, Equality<V> e) {
-            super(h, e);
+        SingletonMap(K key, V value, Hasher<K> keysHasher, Equality<V> valuesEq) {
+            super(keysHasher, valuesEq);
             k = key;
             v = value;
         }
@@ -1627,8 +1597,6 @@ public class Collections {
 
     /**
      * Returns true if the specified arguments are equal, or both null.
-     *
-     * NB: Do not replace with Object.equals until JDK-8015417 is resolved.
      */
     static <T extends ManagedObject> boolean eq(T o1, T o2, Equality<T> eq) {
         return o1==null ? o2==null : eq.equals(o1, o2);

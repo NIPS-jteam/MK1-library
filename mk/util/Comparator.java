@@ -88,10 +88,7 @@ import mk.lang.ManagedObject;
  * @author  Neal Gafter
  * @since 1.2
  */
-public abstract class Comparator<T extends ManagedObject> extends ManagedObject implements InterfaceComparator<T> {
-}
-
-interface InterfaceComparator<T extends ManagedObject> {
+public abstract class Comparator<T extends ManagedObject> extends ManagedObject {
     /**
      * Compares its two arguments for order.  Returns a negative integer,
      * zero, or a positive integer as the first argument is less than, equal
@@ -117,7 +114,8 @@ interface InterfaceComparator<T extends ManagedObject> {
      * <tt>z</tt>.<p>
      *
      * It is generally the case, but <i>not</i> strictly required that
-     * <tt>(compare(x, y)==0) == (x.equals(y))</tt>.  Generally speaking,
+     * <tt>(compare(x, y)==0) == (eq.equals(x, y))</tt>,
+     * where eq - Equality object. Generally speaking,
      * any comparator that violates this condition should clearly indicate
      * this fact.  The recommended language is "Note: this comparator
      * imposes orderings that are inconsistent with equals."
@@ -132,5 +130,5 @@ interface InterfaceComparator<T extends ManagedObject> {
      * @throws ClassCastException if the arguments' types prevent them from
      *         being compared by this comparator.
      */
-    int compare(T o1, T o2);
+    public abstract int compare(T o1, T o2);
 }

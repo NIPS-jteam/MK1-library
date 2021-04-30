@@ -33,8 +33,7 @@ package mk.util;
  * For example, it is not generally permissible for one thread to modify a Collection
  * while another thread is iterating over it.  In general, the results of the
  * iteration are undefined under these circumstances.  Some Iterator
- * implementations (including those of all the general purpose collection implementations
- * provided by the JRE) may choose to throw this exception if this behavior is
+ * implementations may choose to throw this exception if this behavior is
  * detected.  Iterators that do this are known as <i>fail-fast</i> iterators,
  * as they fail quickly and cleanly, rather that risking arbitrary,
  * non-deterministic behavior at an undetermined time in the future.
@@ -70,50 +69,5 @@ public class ConcurrentModificationException extends RuntimeException {
      * detail message.
      */
     public ConcurrentModificationException() {
-    }
-
-    /**
-     * Constructs a {@code ConcurrentModificationException} with the
-     * specified detail message.
-     *
-     * @param message the detail message pertaining to this exception.
-     */
-    public ConcurrentModificationException(String message) {
-        super(message);
-    }
-
-    /**
-     * Constructs a new exception with the specified cause and a detail
-     * message of {@code (cause==null ? null : cause.toString())} (which
-     * typically contains the class and detail message of {@code cause}.
-     *
-     * @param  cause the cause (which is saved for later retrieval by the
-     *         {@link Throwable#getCause()} method).  (A {@code null} value is
-     *         permitted, and indicates that the cause is nonexistent or
-     *         unknown.)
-     * @since  1.7
-     */
-    public ConcurrentModificationException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * Constructs a new exception with the specified detail message and
-     * cause.
-     *
-     * <p>Note that the detail message associated with <code>cause</code> is
-     * <i>not</i> automatically incorporated in this exception's detail
-     * message.
-     *
-     * @param  message the detail message (which is saved for later retrieval
-     *         by the {@link Throwable#getMessage()} method).
-     * @param  cause the cause (which is saved for later retrieval by the
-     *         {@link Throwable#getCause()} method).  (A {@code null} value
-     *         is permitted, and indicates that the cause is nonexistent or
-     *         unknown.)
-     * @since 1.7
-     */
-    public ConcurrentModificationException(String message, Throwable cause) {
-        super(message, cause);
     }
 }
