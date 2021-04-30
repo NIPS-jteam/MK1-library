@@ -90,10 +90,6 @@ import mk.lang.ManagedObject;
  * are between {@code low} and {@code high}, exclusive:<pre>
  *   SortedMap&lt;String, V&gt; sub = m.subMap(low+"\0", high);</pre>
  *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  *
@@ -111,9 +107,7 @@ public interface SortedMap<K extends ManagedObject, V extends ManagedObject> ext
     /**
      * Returns the comparator used to order the keys in this map.
      *
-     * @return the comparator used to order the keys in this map.
-     *         A <tt>null</tt> value is not acceptable for the moment due to
-     *         natural order support removal.
+     * @return the non-{@code null} comparator used to order the keys in this map.
      */
     Comparator<? super K> comparator();
 

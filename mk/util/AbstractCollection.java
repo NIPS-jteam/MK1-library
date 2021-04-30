@@ -53,10 +53,6 @@ import mk.lang.ManagedObject;
  * implementation in detail.  Each of these methods may be overridden if
  * the collection being implemented admits a more efficient implementation.<p>
  *
- * This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @author  Josh Bloch
  * @author  Neal Gafter
  * @see Collection

@@ -59,10 +59,6 @@ package mk.util;
  *         i.next();
  * </pre>
  *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @since 1.4
  */
 public interface RandomAccess {

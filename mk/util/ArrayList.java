@@ -88,10 +88,6 @@ import mk.lang.System;
  * exception for its correctness:  <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @author  Josh Bloch
  * @author  Neal Gafter
  * @see     Collection
@@ -299,7 +295,7 @@ public class ArrayList<E extends ManagedObject> extends AbstractList<E>
      * Returns <tt>true</tt> if this list contains the specified element.
      * More formally, returns <tt>true</tt> if and only if this list contains
      * at least one element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;getEquality().equals(o, e))</tt>.
      *
      * @param o element whose presence in this list is to be tested
      * @return <tt>true</tt> if this list contains the specified element
@@ -312,7 +308,7 @@ public class ArrayList<E extends ManagedObject> extends AbstractList<E>
      * Returns the index of the first occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
      * More formally, returns the lowest index <tt>i</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>,
+     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;getEquality().equals(o, get(i)))</tt>,
      * or -1 if there is no such index.
      */
     public int indexOf(E o) {
@@ -332,7 +328,7 @@ public class ArrayList<E extends ManagedObject> extends AbstractList<E>
      * Returns the index of the last occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
      * More formally, returns the highest index <tt>i</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>,
+     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;getEquality().equals(o, get(i)))</tt>,
      * or -1 if there is no such index.
      */
     public int lastIndexOf(E o) {
@@ -460,7 +456,7 @@ public class ArrayList<E extends ManagedObject> extends AbstractList<E>
      * if it is present.  If the list does not contain the element, it is
      * unchanged.  More formally, removes the element with the lowest index
      * <tt>i</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>
+     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;getEquality().equals(o, get(i)))</tt>
      * (if such an element exists).  Returns <tt>true</tt> if this list
      * contained the specified element (or equivalently, if this list
      * changed as a result of the call).

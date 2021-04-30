@@ -90,9 +90,9 @@ import mk.lang.ManagedObject;
  * example, the specification for the {@link #containsKey(K)
  * containsKey(ManagedObject key)} method says: "returns {@code true} if and
  * only if this map contains a mapping for a key {@code k} such that
- * {@code (key==null ? k==null : key.equals(k))}." This specification should
+ * {@code (key==null ? k==null : keysHasher.equals(key, k))}." This specification should
  * <i>not</i> be construed to imply that invoking {@code Map.containsKey}
- * with a non-null argument {@code key} will cause {@code key.equals(k)} to
+ * with a non-null argument {@code key} will cause {@code keysHasher.equals(key, k)} to
  * be invoked for any key {@code k}.  Implementations are free to
  * implement optimizations whereby the {@code equals} invocation is avoided,
  * for example, by first comparing the hash codes of the two keys.  (The
@@ -140,7 +140,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      * Returns {@code true} if this map contains a mapping for the specified
      * key.  More formally, returns {@code true} if and only if
      * this map contains a mapping for a key {@code k} such that
-     * {@code Hasher.equals(key, k)}.  (There can be at most one such mapping.)
+     * {@code keysHasher.equals(key, k)}.  (There can be at most one such mapping.)
      *
      * @param key key whose presence in this map is to be tested
      * @return {@code true} if this map contains a mapping for the specified
@@ -158,7 +158,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      * Returns {@code true} if this map maps one or more keys to the
      * specified value.  More formally, returns {@code true} if and only if
      * this map contains at least one mapping to a value {@code v} such that
-     * {@code Equality.equals(value, v)}.  This operation
+     * {@code valuesEq.equals(value, v)}.  This operation
      * will probably require time linear in the map size for most
      * implementations of the {@code Map} interface.
      *
@@ -180,7 +180,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      *
      * <p>More formally, if this map contains a mapping from a key
      * {@code k} to a value {@code v} such that
-     * {@code Hasher.equals(key, k)},
+     * {@code keysHasher.equals(key, k)},
      * then this method returns {@code v}; otherwise
      * it returns {@code null}.  (There can be at most one such mapping.)
      *
@@ -234,7 +234,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      * Removes the mapping for a key from this map if it is present
      * (optional operation).   More formally, if this map contains a mapping
      * from key {@code k} to value {@code v} such that
-     * {@code Hasher.equals(key, k)}, that mapping is removed.
+     * {@code keysHasher.equals(key, k)}, that mapping is removed.
      * (The map can contain at most one such mapping.)
      *
      * <p>Returns the value to which this map previously associated the key,

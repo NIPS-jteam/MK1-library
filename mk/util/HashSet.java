@@ -69,10 +69,6 @@ import mk.lang.Math;
  * exception for its correctness: <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @param <E> the type of elements maintained by this set
  *
  * @author  Josh Bloch
@@ -219,7 +215,7 @@ public class HashSet<E extends ManagedObject>
      * Returns <tt>true</tt> if this set contains the specified element.
      * More formally, returns <tt>true</tt> if and only if this set
      * contains an element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;keysHasher.equals(o, e))</tt>.
      *
      * @param o element whose presence in this set is to be tested
      * @return <tt>true</tt> if this set contains the specified element
@@ -232,7 +228,7 @@ public class HashSet<E extends ManagedObject>
      * Adds the specified element to this set if it is not already present.
      * More formally, adds the specified element <tt>e</tt> to this set if
      * this set contains no element <tt>e2</tt> such that
-     * <tt>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</tt>.
+     * <tt>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;keysHasher.equals(e, e2))</tt>.
      * If this set already contains the element, the call leaves the set
      * unchanged and returns <tt>false</tt>.
      *
@@ -247,7 +243,7 @@ public class HashSet<E extends ManagedObject>
     /**
      * Removes the specified element from this set if it is present.
      * More formally, removes an element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>,
+     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;keysHasher.equals(o, e))</tt>,
      * if this set contains such an element.  Returns <tt>true</tt> if
      * this set contained the element (or equivalently, if this set
      * changed as a result of the call).  (This set will not contain the

@@ -32,7 +32,7 @@ import mk.lang.ManagedObject;
 /**
  * A collection that contains no duplicate elements.  More formally, sets
  * contain no pair of elements {@code e1} and {@code e2} such that
- * {@code e1.equals(e2)}, and at most one null element.  As implied by
+ * {@code getEquality().equals(e1, e2)}, and at most one null element.  As implied by
  * its name, this interface models the mathematical <i>set</i> abstraction.
  *
  * <p>The {@code Set} interface places additional stipulations, beyond those
@@ -66,10 +66,6 @@ import mk.lang.ManagedObject;
  * exception or it may succeed, at the option of the implementation.
  * Such exceptions are marked as "optional" in the specification for this
  * interface.
- *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
  *
  * @param <E> the type of elements maintained by this set
  *
@@ -109,7 +105,7 @@ public interface Set<E extends ManagedObject> extends Collection<E> {
      * Returns {@code true} if this set contains the specified element.
      * More formally, returns {@code true} if and only if this set
      * contains an element {@code e} such that
-     * {@code Hasher.equals(o, e)}.
+     * {@code keysHasher.equals(o, e)}.
      *
      * @param o element whose presence in this set is to be tested
      * @return {@code true} if this set contains the specified element
@@ -156,7 +152,7 @@ public interface Set<E extends ManagedObject> extends Collection<E> {
      * (optional operation).  More formally, adds the specified element
      * {@code e} to this set if the set contains no element {@code e2}
      * such that
-     * {@code Hasher.equals(e, e2)}.
+     * {@code keysHasher.equals(e, e2)}.
      * If this set already contains the element, the call leaves the set
      * unchanged and returns {@code false}.  In combination with the
      * restriction on constructors, this ensures that sets never contain
@@ -188,7 +184,7 @@ public interface Set<E extends ManagedObject> extends Collection<E> {
      * Removes the specified element from this set if it is present
      * (optional operation).  More formally, removes an element {@code e}
      * such that
-     * {@code Hasher.equals(o, e)}, if
+     * {@code keysHasher.equals(o, e)}, if
      * this set contains such an element.  Returns {@code true} if this set
      * contained the element (or equivalently, if this set changed as a
      * result of the call).  (This set will not contain the element once the

@@ -57,10 +57,6 @@ import mk.lang.ManagedObject;
  * example, invoking the <tt>sort</tt> method on an unmodifiable list that is
  * already sorted may or may not throw <tt>UnsupportedOperationException</tt>.
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @author  Josh Bloch
  * @author  Neal Gafter
  * @see     Collection
@@ -178,12 +174,12 @@ public class Collections {
      * this method will do an iterator-based binary search that performs
      * O(n) link traversals and O(log n) element comparisons.
      *
+     * <p>NIPS Note: removed natural order support
+     *
      * @param  <T> the class of the objects in the list
      * @param  list the list to be searched.
      * @param  key the key to be searched for.
-     * @param  c the comparator by which the list is ordered.
-     *         A <tt>null</tt> value is not acceptable for the moment due to
-     *         natural order support removal.
+     * @param  c the non-{@code null} comparator by which the list is ordered.
      * @return the index of the search key, if it is contained in the list;
      *         otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *         <i>insertion point</i> is defined as the point at which the
@@ -196,8 +192,6 @@ public class Collections {
      *         <i>mutually comparable</i> using the specified comparator,
      *         or the search key is not mutually comparable with the
      *         elements of the list using this comparator.
-     *
-     *  Note: removed natural order support
      */
     @SuppressWarnings("unchecked")
     public static <T extends ManagedObject> int binarySearch(List<? extends T> list, T key, Comparator<? super T> c) {
@@ -382,9 +376,7 @@ public class Collections {
      *
      * @param  <T> the class of the objects in the collection
      * @param  coll the collection whose minimum element is to be determined.
-     * @param  comp the comparator with which to determine the minimum element.
-     *         A <tt>null</tt> value is not acceptable for the moment due to
-     *         natural order support removal.
+     * @param  comp the non-{@code null} comparator with which to determine the minimum element.
      * @return the minimum element of the given collection, according
      *         to the specified comparator.
      * @throws ClassCastException if the collection contains elements that are
@@ -417,9 +409,7 @@ public class Collections {
      *
      * @param  <T> the class of the objects in the collection
      * @param  coll the collection whose maximum element is to be determined.
-     * @param  comp the comparator with which to determine the maximum element.
-     *         A <tt>null</tt> value is not acceptable for the moment due to
-     *         natural order support removal.
+     * @param  comp the non-{@code null} comparator with which to determine the maximum element.
      * @return the maximum element of the given collection, according
      *         to the specified comparator.
      * @throws ClassCastException if the collection contains elements that are
@@ -543,7 +533,7 @@ public class Collections {
      * Replaces all occurrences of one specified value in a list with another.
      * More formally, replaces with <tt>newVal</tt> each element <tt>e</tt>
      * in <tt>list</tt> such that
-     * <tt>(oldVal==null ? e==null : oldVal.equals(e))</tt>.
+     * <tt>(oldVal==null ? e==null : list.getEquality().equals(oldVal, e))</tt>.
      * (This method has no effect on the size of the list.)
      *
      * @param  <T> the class of the objects in the list
@@ -553,7 +543,7 @@ public class Collections {
      *        replaced.
      * @return <tt>true</tt> if <tt>list</tt> contained one or more elements
      *         <tt>e</tt> such that
-     *         <tt>(oldVal==null ?  e==null : oldVal.equals(e))</tt>.
+     *         <tt>(oldVal==null ?  e==null : list.getEquality().equals(oldVal, e))</tt>.
      * @throws UnsupportedOperationException if the specified list or
      *         its list-iterator does not support the <tt>set</tt> operation.
      * @since  1.4
@@ -1592,18 +1582,17 @@ public class Collections {
     }
 
     /**
-     * Returns a comparator that imposes the reverse ordering of the specified
-     * comparator. A <tt>null</tt> value of comparator is not acceptable
-     * for the moment due to natural order support removal.
+     * Returns a comparator that imposes the reverse ordering of the specified non-{@code null}
+     * comparator.
+     *
+     * <p>NIPS Note: removed natural order support
      *
      * @param <T> the class of the objects compared by the comparator
-     * @param cmp a comparator who's ordering is to be reversed by the returned
-     * comparator or {@code null}
+     * @param cmp a non-{@code null} comparator who's ordering is to be reversed by the returned
+     * comparator
      * @return A comparator that imposes the reverse ordering of the
      *         specified comparator.
      * @since 1.5
-     *
-     * Note: removed natural order support
      */
     public static <T extends ManagedObject> Comparator<T> reverseOrder(Comparator<T> cmp) {
         if (cmp instanceof ReverseComparator2)

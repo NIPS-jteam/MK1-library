@@ -48,10 +48,6 @@ import mk.lang.ManagedObject;
  * operate on the last element returned by a call to {@link #next} or
  * {@link #previous()}.
  *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @author  Josh Bloch
  * @see Collection
  * @see List

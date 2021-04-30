@@ -87,10 +87,6 @@ import mk.lang.ManagedObject;
  * method. (Note however that it is possible to change mappings in the
  * associated map using {@code put}.)
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  *
@@ -107,9 +103,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     implements NavigableMap<K,V>
 {
     /**
-     * The comparator used to maintain order in this tree map.
-     *
-     * Note: natural ordering is not supported in this implementation.
+     * The non-{@code null} comparator used to maintain order in this tree map.
      *
      * @serial
      */
@@ -193,8 +187,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * @throws ClassCastException if the specified key cannot be compared
      *         with the keys currently in the map
      * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      */
     public boolean containsKey(ManagedObject key) {
         return getEntry(key) != null;
@@ -204,7 +197,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * Returns {@code true} if this map maps one or more keys to the
      * specified value.  More formally, returns {@code true} if and only if
      * this map contains at least one mapping to a value {@code v} such
-     * that {@code (value==null ? v==null : value.equals(v))}.  This
+     * that {@code (value==null ? v==null : valuesEq.equals(value, v))}.  This
      * operation will probably require time linear in the map size for
      * most implementations.
      *
@@ -587,8 +580,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @since 1.6
      */
     public Map.Entry<K,V> lowerEntry(K key) {
@@ -598,8 +590,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @since 1.6
      */
     public K lowerKey(K key) {
@@ -639,8 +630,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @since 1.6
      */
     public K ceilingKey(K key) {
@@ -650,8 +640,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @since 1.6
      */
     public Map.Entry<K,V> higherEntry(K key) {
@@ -661,8 +650,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @since 1.6
      */
     public K higherKey(K key) {
@@ -795,8 +783,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException       {@inheritDoc}
      * @throws NullPointerException if {@code fromKey} or {@code toKey} is
-     *         null and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         null and this map's comparator does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
      * @since 1.6
      */
@@ -810,8 +797,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException       {@inheritDoc}
      * @throws NullPointerException if {@code toKey} is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
      * @since 1.6
      */
@@ -824,8 +810,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException       {@inheritDoc}
      * @throws NullPointerException if {@code fromKey} is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
      * @since 1.6
      */
@@ -838,8 +823,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException       {@inheritDoc}
      * @throws NullPointerException if {@code fromKey} or {@code toKey} is
-     *         null and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         null and this map's comparator does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedMap<K,V> subMap(K fromKey, K toKey) {
@@ -849,8 +833,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException       {@inheritDoc}
      * @throws NullPointerException if {@code toKey} is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedMap<K,V> headMap(K toKey) {
@@ -860,8 +843,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * @throws ClassCastException       {@inheritDoc}
      * @throws NullPointerException if {@code fromKey} is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     *         and this map's comparator does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedMap<K,V> tailMap(K fromKey) {
@@ -1138,7 +1120,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     }
 
     /**
-     * Test two values for equality.  Differs from o1.equals(o2) only in
+     * Test two values for equality.  Differs from eq.equals(o1, o2) only in
      * that it copes with {@code null} o1 properly.
      */
     static final<V extends ManagedObject> boolean valEquals(V o1, V o2, Equality<V> eq) {

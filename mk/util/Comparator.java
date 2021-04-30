@@ -40,7 +40,7 @@ import mk.lang.ManagedObject;
  * The ordering imposed by a comparator <tt>c</tt> on a set of elements
  * <tt>S</tt> is said to be <i>consistent with equals</i> if and only if
  * <tt>c.compare(e1, e2)==0</tt> has the same boolean value as
- * <tt>e1.equals(e2)</tt> for every <tt>e1</tt> and <tt>e2</tt> in
+ * <tt>eq.equals(e1, e2)</tt>, where eq - Equality object, for every <tt>e1</tt> and <tt>e2</tt> in
  * <tt>S</tt>.<p>
  *
  * Caution should be exercised when using a comparator capable of imposing an
@@ -53,7 +53,7 @@ import mk.lang.ManagedObject;
  * map), which is defined in terms of <tt>equals</tt>.<p>
  *
  * For example, suppose one adds two elements {@code a} and {@code b} such that
- * {@code (a.equals(b) && c.compare(a, b) != 0)}
+ * {@code (eq.equals(a, b) && c.compare(a, b) != 0)}, where eq - Equality object,
  * to an empty {@code TreeSet} with comparator {@code c}.
  * The second {@code add} operation will return
  * true (and the size of the tree set will increase) because {@code a} and
@@ -75,15 +75,12 @@ import mk.lang.ManagedObject;
  * the ordering imposed by <tt>c</tt> on <tt>S</tt> is <i>consistent with
  * equals</i>, we mean that the quotient for the ordering is the equivalence
  * relation defined by the objects method(s):<pre>
- *     {(x, y) such that x.equals(y)}. </pre>
+ *     {(x, y) such that eq.equals(x, y)}, </pre>
+ * where eq - Equality object.
  *
  * A comparator may optionally permit
  * comparison of null arguments, while maintaining the requirements for
  * an equivalence relation.
- *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
  *
  * @param <T> the type of objects that may be compared by this comparator
  *

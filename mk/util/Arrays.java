@@ -48,10 +48,6 @@ import mk.lang.System;
  * example, the algorithm used by {@code sort(Object[])} does not have to be
  * a MergeSort, but it does have to be <i>stable</i>.)
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @author Josh Bloch
  * @author Neal Gafter
  * @author John Rose
@@ -92,15 +88,6 @@ public class Arrays {
      */
 
     /**
-     * Swaps x[a] with x[b].
-     */
-    private static void swap(ManagedObject[] x, int a, int b) {
-        ManagedObject t = x[a];
-        x[a] = x[b];
-        x[b] = t;
-    }
-
-    /**
      * Sorts the specified array of objects according to the order induced by
      * the specified comparator.  All elements in the array must be
      * <i>mutually comparable</i> by the specified comparator (that is,
@@ -133,17 +120,15 @@ public class Arrays {
      * Fourth Annual ACM-SIAM Symposium on Discrete Algorithms, pp 467-474,
      * January 1993.
      *
+     * <p>NIPS Note: removed natural order support
+     *
      * @param <T> the class of the objects to be sorted
      * @param a the array to be sorted
-     * @param c the comparator to determine the order of the array.  A
-     *        <tt>null</tt> value is not acceptable for the moment due to
-     *        natural order support removal.
+     * @param c the non-{@code null} comparator to determine the order of the array.
      * @throws ClassCastException if the array contains elements that are
      *         not <i>mutually comparable</i> using the specified comparator
      * @throws IllegalArgumentException (optional) if the comparator is
      *         found to violate the {@link Comparator} contract
-     *
-     * Note: removed natural order support
      */
     public static <T extends ManagedObject> void sort(T[] a, Comparator<? super T> c) {
         TimSort.sort(a, 0, a.length, c, null, 0, 0);
@@ -187,14 +172,14 @@ public class Arrays {
      * Fourth Annual ACM-SIAM Symposium on Discrete Algorithms, pp 467-474,
      * January 1993.
      *
+     * <p>NIPS Note: removed natural order support
+     *
      * @param <T> the class of the objects to be sorted
      * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
      *        sorted
      * @param toIndex the index of the last element (exclusive) to be sorted
-     * @param c the comparator to determine the order of the array.  A
-     *        <tt>null</tt> value is not acceptable for the moment due to
-     *        natural order support removal.
+     * @param c the non-{@code null} comparator to determine the order of the array.
      * @throws ClassCastException if the array contains elements that are not
      *         <i>mutually comparable</i> using the specified comparator.
      * @throws IllegalArgumentException if {@code fromIndex > toIndex} or
@@ -202,8 +187,6 @@ public class Arrays {
      *         {@link Comparator} contract
      * @throws ArrayIndexOutOfBoundsException if {@code fromIndex < 0} or
      *         {@code toIndex > a.length}
-     *
-     * Note: removed natural order support
      */
     public static <T extends ManagedObject> void sort(T[] a, int fromIndex, int toIndex,
                                 Comparator<? super T> c) {
@@ -222,7 +205,7 @@ public class Arrays {
      * Searches the specified array for the specified object using the binary
      * search algorithm.  The array must be sorted into ascending order
      * according to the specified comparator (as by the
-     * {@link #sort(ManagedObject[], Comparator) sort(T[], Comparator)}
+     * {@link #sort(ManagedObject[], Comparator)}
      * method) prior to making this call.  If it is
      * not sorted, the results are undefined.
      * If the array contains multiple
@@ -232,9 +215,7 @@ public class Arrays {
      * @param <T> the class of the objects in the array
      * @param a the array to be searched
      * @param key the value to be searched for
-     * @param c the comparator by which the array is ordered.  A
-     *        <tt>null</tt> value is not acceptable for the moment due to
-     *        natural order removal.
+     * @param c the non-{@code null} comparator by which the array is ordered.
      * @return index of the search key, if it is contained in the array;
      *         otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *         <i>insertion point</i> is defined as the point at which the
@@ -271,9 +252,7 @@ public class Arrays {
      *          searched
      * @param toIndex the index of the last element (exclusive) to be searched
      * @param key the value to be searched for
-     * @param c the comparator by which the array is ordered.  A
-     *        <tt>null</tt> value is not acceptable for the moment due to
-     *        natural order removal.
+     * @param c non-{@code null} the comparator by which the array is ordered.
      * @return index of the search key, if it is contained in the array
      *         within the specified range;
      *         otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
@@ -301,7 +280,7 @@ public class Arrays {
     }
 
     /* Like public version, but without range checks.
-     * Note: removed natural order support
+     * NIPS Note: removed natural order support
      */
     private static <T extends ManagedObject> int binarySearch0(T[] a, int fromIndex, int toIndex,
                                          T key, Comparator<? super T> c) {
@@ -385,12 +364,12 @@ public class Arrays {
      * @since 1.6
      */
     @SuppressWarnings("unchecked")
-    public static <T extends ManagedObject> T[] copyOf(T[] original, int newLength) {
+    public static ManagedObject[] copyOf(ManagedObject[] original, int newLength) {
         @SuppressWarnings("unchecked")
-        T[] copy = (T[]) new ManagedObject[newLength];
+        ManagedObject[] copy = new ManagedObject[newLength];
         System.arraycopy(original, 0, copy, 0,
                 Math.min(original.length, newLength));
-        return (T[]) copy;
+        return copy;
     }
 
     // Misc

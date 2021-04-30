@@ -38,7 +38,7 @@ import mk.lang.ManagedObject;
  *
  * Unlike sets, lists typically allow duplicate elements.  More formally,
  * lists typically allow pairs of elements {@code e1} and {@code e2}
- * such that {@code e1.equals(e2)}, and they typically allow multiple
+ * such that {@code getEquality().equals(e1, e2)}, and they typically allow multiple
  * null elements if they allow null elements at all.  It is not inconceivable
  * that someone might wish to implement a list that prohibits duplicates, by
  * throwing runtime exceptions when the user attempts to insert them, but we
@@ -126,7 +126,7 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      * Returns {@code true} if this list contains the specified element.
      * More formally, returns {@code true} if and only if this list contains
      * at least one element {@code e} such that
-     * {@code Equality.equals(o, e)}.
+     * {@code getEquality().equals(o, e)}.
      *
      * @param o element whose presence in this list is to be tested
      * @return {@code true} if this list contains the specified element
@@ -195,7 +195,7 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      * if it is present (optional operation).  If this list does not contain
      * the element, it is unchanged.  More formally, removes the element with
      * the lowest index {@code i} such that
-     * {@code Objects.equals(o, get(i))}
+     * {@code getEquality().equals(o, get(i))}
      * (if such an element exists).  Returns {@code true} if this list
      * contained the specified element (or equivalently, if this list changed
      * as a result of the call).
@@ -394,9 +394,7 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      * Fourth Annual ACM-SIAM Symposium on Discrete Algorithms, pp 467-474,
      * January 1993.
      *
-     * @param c the {@code Comparator} used to compare list elements.
-     *          <tt>null</tt> value is not acceptable for the moment due to
-     *          natural order support removal.
+     * @param c the non-{@code null} {@code Comparator} used to compare list elements.
      * @throws ClassCastException if the list contains elements that are not
      *         <i>mutually comparable</i> using the specified comparator
      * @throws UnsupportedOperationException if the list's list-iterator does
@@ -502,7 +500,7 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      * Returns the index of the first occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
      * More formally, returns the lowest index {@code i} such that
-     * {@code Equality.equals(o, get(i))},
+     * {@code getEquality().equals(o, get(i))},
      * or -1 if there is no such index.
      *
      * @param o element to search for
@@ -521,7 +519,7 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      * Returns the index of the last occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
      * More formally, returns the highest index {@code i} such that
-     * {@code Equality.equals(o, get(i))},
+     * {@code getEquality().equals(o, get(i))},
      * or -1 if there is no such index.
      *
      * @param o element to search for

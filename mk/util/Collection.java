@@ -89,19 +89,13 @@ import mk.lang.ManagedObject;
  *
  * <p>Many methods in Collections Framework interfaces are defined in
  * terms of the equals method. For example, the specification for the
- * contains(Object o) method says: "returns <tt>true</tt> if and only
+ * contains(E o) method says: "returns <tt>true</tt> if and only
  * if this collection contains at least one element <tt>e</tt> such that
- * <tt>(o==null ? e==null : o.equals(e))</tt>."  This specification should
+ * <tt>(o==null ? e==null : getEquality().equals(o, e))</tt>."
+ * This specification should
  * <i>not</i> be construed to imply that invoking <tt>Collection.contains</tt>
- * with a non-null argument <tt>o</tt> will cause <tt>o.equals(e)</tt> to be
- * invoked for any element <tt>e</tt>.  Implementations are free to implement
- * optimizations whereby the <tt>equals</tt> invocation is avoided, for
- * example, by first comparing the hash codes of the two elements.  (The
- * hashCode() specification guarantees that two objects with unequal hash codes
- * cannot be equal.)  More generally, implementations of
- * the various Collections Framework interfaces are free to take advantage of
- * the specified behavior of underlying Object methods wherever the
- * implementor deems it appropriate.
+ * with a non-null argument <tt>o</tt> will cause <tt>getEquality().equals(o, e)</tt> to be
+ * invoked for any element <tt>e</tt>.
  * This library of collections uses {@link Equality#equals(E, E) equals}
  * for the purpose.
  *
@@ -110,10 +104,6 @@ import mk.lang.ManagedObject;
  * the collection directly or indirectly contains itself.
  * Implementations may optionally handle the self-referential scenario,
  * however most current implementations do not do so.
- *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
  *
  * @implSpec
  * The default method implementations (inherited or otherwise) do not apply any
@@ -162,7 +152,7 @@ public interface Collection<E extends ManagedObject> {
      * Returns <tt>true</tt> if this collection contains the specified element.
      * More formally, returns <tt>true</tt> if and only if this collection
      * contains at least one element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;getEquality().equals(o, e))</tt>.
      *
      * @param o element whose presence in this collection is to be tested
      * @return <tt>true</tt> if this collection contains the specified
@@ -245,7 +235,7 @@ public interface Collection<E extends ManagedObject> {
      * Removes a single instance of the specified element from this
      * collection, if it is present (optional operation).  More formally,
      * removes an element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>, if
+     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;getEquality().equals(o, e))</tt>, if
      * this collection contains one or more such elements.  Returns
      * <tt>true</tt> if this collection contained the specified element (or
      * equivalently, if this collection changed as a result of the call).
@@ -371,7 +361,6 @@ public interface Collection<E extends ManagedObject> {
     void clear();
 
     /**
-     * Returns external implementation of object comparison.
      * @return external implementation of object comparison.
      */
     Equality<E> getEquality();

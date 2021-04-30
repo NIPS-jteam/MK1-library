@@ -55,10 +55,6 @@ import mk.lang.ManagedObject;
  * implementation in detail.  Each of these methods may be overridden if the
  * map being implemented admits a more efficient implementation.
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  *

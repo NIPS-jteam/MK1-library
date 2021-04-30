@@ -127,10 +127,6 @@ import mk.lang.ManagedObject;
  * exception for its correctness:   <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  *
@@ -428,7 +424,7 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
      *
      * <p>More formally, if this map contains a mapping from a key
      * {@code k} to a value {@code v} such that {@code (key==null ? k==null :
-     * key.equals(k))}, then this method returns {@code v}; otherwise
+     * keysHasher.equals(key, k))}, then this method returns {@code v}; otherwise
      * it returns {@code null}.  (There can be at most one such mapping.)
      *
      * <p>A return value of {@code null} does not <i>necessarily</i>

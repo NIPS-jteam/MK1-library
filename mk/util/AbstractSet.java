@@ -45,10 +45,6 @@ import mk.lang.ManagedObject;
  * the <tt>AbstractCollection</tt> class.  It merely adds implementations
  * for <tt>equals</tt> and <tt>hashCode</tt>.<p>
  *
- * This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @param <E> the type of elements maintained by this set
  *
  * @author  Josh Bloch

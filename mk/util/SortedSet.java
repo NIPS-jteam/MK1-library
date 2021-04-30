@@ -84,10 +84,6 @@ import mk.lang.ManagedObject;
  * <tt>high</tt>, exclusive:<pre>
  *   SortedSet&lt;String&gt; sub = s.subSet(low+"\0", high);</pre>
  *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @param <E> the type of elements maintained by this set
  *
  * @author  Josh Bloch
@@ -104,9 +100,7 @@ public interface SortedSet<E extends ManagedObject> extends Set<E> {
     /**
      * Returns the comparator used to order the elements in this set.
      *
-     * @return the comparator used to order the elements in this set,
-     *         A <tt>null</tt> value is not acceptable for the moment due to
-     *         natural order support removal.
+     * @return the non-{@code null} comparator used to order the elements in this set
      */
     Comparator<? super E> comparator();
 
