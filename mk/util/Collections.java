@@ -870,6 +870,8 @@ public class Collections {
         public void clear() {
             throw new UnsupportedOperationException();
         }
+        public Equality<K> getKeysEquality() { return m.getKeysEquality(); }
+        public Equality<V> getValuesEquality() { return m.getValuesEquality(); }
 
         private transient Set<K> keySet;
         private transient Set<Map.Entry<K,V>> entrySet;
@@ -1411,14 +1413,14 @@ public class Collections {
      * @param <V> the class of the map values
      * @param key the sole key to be stored in the returned map.
      * @param value the value to which the returned map maps <tt>key</tt>.
-     * @param keysHasher the object with the implementations of 'equals' and 'hashCode' operations for hashed keys
+     * @param keysEq the object with the implementations of 'equals' operation for hashed keys.
      * @param valuesEq the object with the implementation of external comparison.
      * @return an immutable map containing only the specified key-value
      *         mapping.
      * @since 1.3
      */
-    public static <K extends ManagedObject, V extends ManagedObject> Map<K,V> singletonMap(K key, V value, Hasher<K> keysHasher, Equality<V> valuesEq) {
-        return new SingletonMap<>(key, value, keysHasher, valuesEq);
+    public static <K extends ManagedObject, V extends ManagedObject> Map<K,V> singletonMap(K key, V value, Equality<K> keysEq, Equality<V> valuesEq) {
+        return new SingletonMap<>(key, value, keysEq, valuesEq);
     }
 
     /**
@@ -1430,17 +1432,17 @@ public class Collections {
         private final K k;
         private final V v;
 
-        SingletonMap(K key, V value, Hasher<K> keysHasher, Equality<V> valuesEq) {
-            super(keysHasher, valuesEq);
+        SingletonMap(K key, V value, Equality<K> keysEq, Equality<V> valuesEq) {
+            super(keysEq, valuesEq);
             k = key;
             v = value;
         }
 
         public int size()                                           {return 1;}
         public boolean isEmpty()                                {return false;}
-        public boolean containsKey(K key)             {return eq(key, k, keysHasher);}
+        public boolean containsKey(K key)             {return eq(key, k, keysEq);}
         public boolean containsValue(V value)       {return eq(value, v, valuesEq);}
-        public V get(K key)              {return (eq(key, k, keysHasher) ? v : null);}
+        public V get(K key)              {return (eq(key, k, keysEq) ? v : null);}
 
         private transient Set<K> keySet;
         private transient Set<Map.Entry<K,V>> entrySet;
@@ -1448,14 +1450,14 @@ public class Collections {
 
         public Set<K> keySet() {
             if (keySet==null)
-                keySet = singleton(k, keysHasher);
+                keySet = singleton(k, keysEq);
             return keySet;
         }
 
         public Set<Map.Entry<K,V>> entrySet() {
             if (entrySet==null)
                 entrySet = Collections.<Map.Entry<K,V>>singleton(
-                    new SimpleImmutableEntry<>(k, v), new MapEntryEquality<>(keysHasher, valuesEq));
+                    new SimpleImmutableEntry<>(k, v), new MapEntryEquality<>(keysEq, valuesEq));
             return entrySet;
         }
 

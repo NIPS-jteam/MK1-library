@@ -90,12 +90,12 @@ public class HashSet<E extends ManagedObject>
     private static final ManagedObject PRESENT = new ManagedObject();
 
     // Equality implementation for dummy value
-    private static final EqualityPresent EQ = new EqualityPresent();
+    private static final IdentityEquality EQ = new IdentityEquality();
 
     /**
-     *  Provides a way to compare a class for equality for a dummy value
+     *  Identity Equality class to compare for equality for a dummy value
      */
-    static class EqualityPresent implements Equality<ManagedObject> {
+    static class IdentityEquality implements Equality<ManagedObject> {
         @Override
         public boolean equals(ManagedObject a, ManagedObject b) {
             return a == b;

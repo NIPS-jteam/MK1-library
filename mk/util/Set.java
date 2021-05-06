@@ -37,7 +37,7 @@ import mk.lang.ManagedObject;
  *
  * <p>The {@code Set} interface places additional stipulations, beyond those
  * inherited from the {@code Collection} interface, on the contracts of all
- * constructors and on the contracts of the {@code add}, {@code equals} and
+ * constructors and on the contracts of the {@code add}, external {@code equals} and
  * {@code hashCode} methods.  Declarations for other inherited methods are
  * also included here for convenience.  (The specifications accompanying these
  * declarations have been tailored to the {@code Set} interface, but they do
@@ -105,7 +105,7 @@ public interface Set<E extends ManagedObject> extends Collection<E> {
      * Returns {@code true} if this set contains the specified element.
      * More formally, returns {@code true} if and only if this set
      * contains an element {@code e} such that
-     * {@code keysHasher.equals(o, e)}.
+     * {@code getEquality().equals(o, e)}.
      *
      * @param o element whose presence in this set is to be tested
      * @return {@code true} if this set contains the specified element
@@ -152,7 +152,7 @@ public interface Set<E extends ManagedObject> extends Collection<E> {
      * (optional operation).  More formally, adds the specified element
      * {@code e} to this set if the set contains no element {@code e2}
      * such that
-     * {@code keysHasher.equals(e, e2)}.
+     * {@code getEquality().equals(e, e2)}.
      * If this set already contains the element, the call leaves the set
      * unchanged and returns {@code false}.  In combination with the
      * restriction on constructors, this ensures that sets never contain
@@ -184,7 +184,7 @@ public interface Set<E extends ManagedObject> extends Collection<E> {
      * Removes the specified element from this set if it is present
      * (optional operation).  More formally, removes an element {@code e}
      * such that
-     * {@code keysHasher.equals(o, e)}, if
+     * {@code getEquality().equals(o, e)}, if
      * this set contains such an element.  Returns {@code true} if this set
      * contained the element (or equivalently, if this set changed as a
      * result of the call).  (This set will not contain the element once the

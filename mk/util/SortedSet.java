@@ -30,13 +30,13 @@ import mk.lang.ManagedObject;
 
 /**
  * A {@link Set} that further provides a <i>total ordering</i> on its elements.
- * The elements are ordered by a {@link Comparator} typically provided at sorted
+ * The elements are ordered by a {@link Comparator} provided at sorted
  * set creation time.  The set's iterator will traverse the set in
  * ascending element order. Several additional operations are provided
  * to take advantage of the ordering.  (This interface is the set
  * analogue of {@link SortedMap}.)
  *
- * <p>All elements inserted into a sorted set must be accepted by the specified comparator).
+ * <p>All elements inserted into a sorted set must be supported by the specified comparator).
  * Furthermore, all such elements must be <i>mutually comparable</i>:
  * <tt>comparator.compare(e1, e2)</tt> must not throw a
  * <tt>ClassCastException</tt> for any elements <tt>e1</tt> and <tt>e2</tt> in
@@ -47,7 +47,7 @@ import mk.lang.ManagedObject;
  * <p>Note that the ordering maintained by a sorted set (whether or not an
  * explicit comparator is provided) must be <i>consistent with equals</i> if
  * the sorted set is to correctly implement the <tt>Set</tt> interface.  (See
- * <tt>Comparator</tt> interface for a
+ * <tt>Comparator</tt> class for a
  * precise definition of <i>consistent with equals</i>.)  This is so because
  * the <tt>Set</tt> interface is defined in terms of the <tt>equals</tt>
  * operation, but a sorted set performs all element comparisons using its
@@ -63,7 +63,8 @@ import mk.lang.ManagedObject;
  * sorted set sorted according to the specified comparator.
  * 2) A constructor with an argument of type <tt>SortedSet</tt>,
  * which creates a new sorted set with the same elements and the same
- * ordering as the input sorted set.  There is no way to enforce this
+ * ordering as the input sorted set, along with Equality for
+ * keys argument for both.  There is no way to enforce this
  * recommendation, as interfaces cannot contain constructors.
  *
  * <p>Note: several methods return subsets with restricted ranges.

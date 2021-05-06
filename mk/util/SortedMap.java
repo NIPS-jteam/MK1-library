@@ -38,10 +38,10 @@ import mk.lang.ManagedObject;
  * Several additional operations are provided to take advantage of the
  * ordering.  (This interface is the map analogue of {@link SortedSet}.)
  *
- * <p>All keys inserted into a sorted map must be accepted by the specified
+ * <p>All keys inserted into a sorted map must be supported by the specified
  * comparator).
- * Furthermore, all such keys must be {@code comparator.compare(k1, k2)}
- * must not throw a
+ * Furthermore, all such keys must be <i>mutually comparable</i>:
+ * {@code comparator.compare(k1, k2)} must not throw a
  * {@code ClassCastException} for any keys {@code k1} and {@code k2} in
  * the sorted map.  Attempts to violate this restriction will cause the
  * offending method or constructor invocation to throw a
@@ -50,11 +50,10 @@ import mk.lang.ManagedObject;
  * <p>Note that the ordering maintained by a sorted map (whether or not an
  * explicit comparator is provided) must be <em>consistent with equals</em> if
  * the sorted map is to correctly implement the {@code Map} interface.
- * See {@code Comparator} interface (abstract class) for a
- * precise definition of <em>consistent with equals</em>.  This is so because
- * the {@code Map} interface is defined in terms of the {@code equals}
- * operation, but a sorted map performs all key comparisons using its
- * {@code compare}) method, so two keys that are
+ * See {@code Comparator} class for a precise definition of <em>consistent
+ * with equals</em>.  This is so because the {@code Map} interface is defined
+ * in terms of the {@code equals} operation, but a sorted map performs all key
+ * comparisons using its {@code compare}) method, so two keys that are
  * deemed equal by this method are, from the standpoint of the sorted map,
  * equal.  The behavior of a tree map <em>is</em> well-defined even if its
  * ordering is inconsistent with equals; it just fails to obey the general
@@ -65,11 +64,13 @@ import mk.lang.ManagedObject;
  * though as required constructors cannot be specified by interfaces. The
  * expected "standard" constructors for all sorted map implementations are:
  * <ol>
- *   <li>A constructor with an argument of type {@code Comparator}, which
- *   creates an empty sorted map sorted according to the specified comparator.</li>
- *   <li>A constructor with an argument of type {@code SortedMap}, which
- *   creates a new sorted map with the same key-value mappings and the same
- *   ordering as the input sorted map.</li>
+ *   <li>A constructor with an argument of type {@code Comparator} along with
+ *   Equality for keys and values arguments, which creates an empty sorted map
+ *   sorted according to the specified comparator.</li>
+ *   <li>A constructor with an argument of type {@code SortedMap} along with
+ *   Equality for keys and values arguments, which creates a new sorted map
+ *   with the same key-value mappings and the same ordering as
+ *   the input sorted map.</li>
  * </ol>
  *
  * <p><strong>Note</strong>: several methods return submaps with restricted key

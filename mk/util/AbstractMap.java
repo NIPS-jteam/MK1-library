@@ -67,10 +67,9 @@ import mk.lang.ManagedObject;
 
 public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObject> extends ManagedObject implements Map<K,V> {
     /**
-     * External implementations of 'equals' and 'hashCode' operations
-     * for hashed keys
+     * External implementations of 'equals' operation for hashed keys
      */
-    protected Hasher<K> keysHasher;
+    protected Equality<K> keysEq;
 
     /**
      * External implementation of object comparison for values
@@ -81,13 +80,13 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
      *
-     * @param  keysHasher the object with the implementations of 'equals'
-     *         and 'hashCode' operations for hashed keys
+     * @param  keysEq the object with the implementations of 'equals'
+     *         operation for hashed keys
      * @param  valuesEq   the object with the implementation of external comparison
      */
-    protected AbstractMap(Hasher<K> keysHasher, Equality<V> valuesEq) {
-        this.keysHasher = keysHasher;
-        this.valuesEq = valuesEq;
+    protected AbstractMap(Equality<K> keysEq, Equality<V> valuesEq) {
+        this.keysEq = Objects.requireNonNull(keysEq);
+        this.valuesEq = Objects.requireNonNull(valuesEq);
     }
 
     // Query Operations
@@ -168,7 +167,7 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
         } else {
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (keysHasher.equals(key, e.getKey()))
+                if (keysEq.equals(key, e.getKey()))
                     return true;
             }
         }
@@ -200,7 +199,7 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
         } else {
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (keysHasher.equals(key, e.getKey()))
+                if (keysEq.equals(key, e.getKey()))
                     return e.getValue();
             }
         }
@@ -260,7 +259,7 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
         } else {
             while (correctEntry==null && i.hasNext()) {
                 Entry<K,V> e = i.next();
-                if (keysHasher.equals(key, e.getKey()))
+                if (keysEq.equals(key, e.getKey()))
                     correctEntry = e;
             }
         }
@@ -365,7 +364,7 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
-            ks = new AbstractSet<K>(keysHasher) {
+            ks = new AbstractSet<K>(keysEq) {
                 public Iterator<K> iterator() {
                     return new Iterator<K>() {
                         private Iterator<Entry<K,V>> i = entrySet().iterator();
@@ -540,11 +539,11 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
      * Implementation of Map.Entry<K, V> object comparison
      */
     public static class MapEntryEquality<K extends ManagedObject, V extends ManagedObject> implements Equality<Map.Entry<K, V>> {
-        private Hasher<K> keysHasher;
+        private Equality<K> keysEq;
         private Equality<V> valuesEq;
 
-        MapEntryEquality(Hasher<K> h, Equality<V> e){
-            keysHasher = h;
+        MapEntryEquality(Equality<K> h, Equality<V> e){
+            keysEq = h;
             valuesEq = e;
         }
 
@@ -554,10 +553,20 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
                 return true;
 
             if (a != null && b != null &&
-                    keysHasher.equals(a.getKey(), b.getKey()) && valuesEq.equals(a.getValue(), b.getValue()))
+                    keysEq.equals(a.getKey(), b.getKey()) && valuesEq.equals(a.getValue(), b.getValue()))
                 return true;
 
             return false;
         }
     }
+
+    /**
+     * @return external implementation of keys comparison.
+     */
+    public Equality<K> getKeysEquality() { return keysEq; }
+
+    /**
+     * @return external implementation of values comparison.
+     */
+    public Equality<V> getValuesEquality() { return valuesEq; }
 }

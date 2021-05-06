@@ -280,7 +280,7 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
         LinkedHashMapEntry<K,V> first;
         if (evict && (first = head) != null && removeEldestEntry(first)) {
             K key = first.key;
-            removeNode(hash(key, keysHasher), key, null, false, true);
+            removeNode(hash(key), key, null, false, true);
         }
     }
 
@@ -412,7 +412,7 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
     public boolean containsValue(V value) {
         for (LinkedHashMapEntry<K,V> e = head; e != null; e = e.after) {
             V v = e.value;
-            if (v == value || (value != null && valuesEq.equals(value, v)))
+            if (v == value || valuesEq.equals(value, v))
                 return true;
         }
         return false;
@@ -435,7 +435,7 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
      */
     public V get(K key) {
         Node<K,V> e;
-        if ((e = getNode(hash(key, keysHasher), key)) == null)
+        if ((e = getNode(hash(key), key)) == null)
             return null;
         if (accessOrder)
             afterNodeAccess(e);
@@ -522,14 +522,14 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
-            ks = new LinkedKeySet(keysHasher);
+            ks = new LinkedKeySet();
             keySet = ks;
         }
         return ks;
     }
 
     final class LinkedKeySet extends AbstractSet<K> {
-        LinkedKeySet(Hasher<K> keysHasher) {
+        LinkedKeySet() {
             super(keysHasher);
         }
 
@@ -540,7 +540,7 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
         }
         public final boolean contains(K o) { return containsKey(o); }
         public final boolean remove(K key) {
-            return removeNode(hash(key, keysHasher), key, null, false, true) != null;
+            return removeNode(hash(key), key, null, false, true) != null;
         }
     }
 
@@ -562,15 +562,15 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
     public Collection<V> values() {
         Collection<V> vs = values;
         if (vs == null) {
-            vs = new LinkedValues(valuesEq);
+            vs = new LinkedValues();
             values = vs;
         }
         return vs;
     }
 
     final class LinkedValues extends AbstractCollection<V> {
-        LinkedValues(Equality<V> eq) {
-            super(eq);
+        LinkedValues() {
+            super(valuesEq);
         }
 
         public final int size()                 { return size; }
@@ -599,12 +599,12 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
      */
     public Set<Map.Entry<K,V>> entrySet() {
         Set<Map.Entry<K,V>> es;
-        return (es = entrySet) == null ? (entrySet = new LinkedEntrySet(new MapEntryEquality<>(keysHasher, valuesEq))) : es;
+        return (es = entrySet) == null ? (entrySet = new LinkedEntrySet()) : es;
     }
 
     final class LinkedEntrySet extends AbstractSet<Map.Entry<K,V>> {
-        LinkedEntrySet(Equality<Entry<K, V>> entryEquality) {
-            super(entryEquality);
+        LinkedEntrySet() {
+            super(new MapEntryEquality<>(keysHasher, valuesEq));
         }
 
         public final int size()                 { return size; }
@@ -613,16 +613,14 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
             return new LinkedEntryIterator();
         }
         public final boolean contains(Map.Entry<K,V> o) {
-            Map.Entry<K,V> e = o;
-            K key = e.getKey();
-            Node<K,V> candidate = getNode(hash(key, keysHasher), key);
-            return candidate != null && candidate.equalTo(e);
+            K key = o.getKey();
+            Node<K,V> candidate = getNode(hash(key), key);
+            return candidate != null && candidate.equalTo(o, keysHasher, valuesEq);
         }
         public final boolean remove(Map.Entry<K,V> o) {
-            Map.Entry<K,V> e = o;
-            K key = e.getKey();
-            V value = e.getValue();
-            return removeNode(hash(key, keysHasher), key, value, true, true) != null;
+            K key = o.getKey();
+            V value = o.getValue();
+            return removeNode(hash(key), key, value, true, true) != null;
         }
     }
 
@@ -662,7 +660,7 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
                 throw new ConcurrentModificationException();
             current = null;
             K key = p.key;
-            removeNode(hash(key, keysHasher), key, null, false, false);
+            removeNode(hash(key), key, null, false, false);
             expectedModCount = modCount;
         }
     }

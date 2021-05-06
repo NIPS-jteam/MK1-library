@@ -133,14 +133,14 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      *
      * @param comparator the comparator that will be used to order this map.
      *        If {@code null} the call will throw NullPointerException
-     * @param keysHasher the object with the implementations of 'equals'
-     *        and 'hashCode' operations for hashed keys
+     * @param keysEq the object with the implementations of 'equals'
+     *        operation for hashed keys
      * @param valuesEq   the object with the implementation of external comparison
      *        for values
      */
-    public TreeMap(Comparator<? super K> comparator, Hasher<K> keysHasher, Equality<V> valuesEq) {
-        super(keysHasher, valuesEq);
-        this.comparator = Objects.requireNonNull(comparator, "Natural ordering not supported. Use a non-null comparator");
+    public TreeMap(Comparator<? super K> comparator, Equality<K> keysEq, Equality<V> valuesEq) {
+        super(keysEq, valuesEq);
+        this.comparator = Objects.requireNonNull(comparator);
     }
 
     /**
@@ -150,15 +150,15 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      *
      * @param  m  the sorted map whose mappings are to be placed in this map,
      *         and whose comparator is to be used to sort this map
-     * @param  keysHasher the object with the implementations of 'equals'
-     *         and 'hashCode' operations for hashed keys
+     * @param  keysEq the object with the implementations of 'equals'
+     *         operation for hashed keys
      * @param  valuesEq the object with the implementation of external comparison
      *         for values
      * @throws NullPointerException if the specified map is null
      */
-    public TreeMap(SortedMap<K, ? extends V> m, Hasher<K> keysHasher, Equality<V> valuesEq) {
-        super(keysHasher, valuesEq);
-        comparator = Objects.requireNonNull(m.comparator(), "Natural ordering not supported. Use a non-null comparator");
+    public TreeMap(SortedMap<K, ? extends V> m, Equality<K> keysEq, Equality<V> valuesEq) {
+        super(keysEq, valuesEq);
+        comparator = Objects.requireNonNull(m.comparator());
         try {
             buildFromSorted(m.size(), m.entrySet().iterator(), null);
         } catch (ClassNotFoundException cannotHappen) {
@@ -189,7 +189,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * @throws NullPointerException if the specified key is null
      *         and this map's comparator does not permit null keys
      */
-    public boolean containsKey(ManagedObject key) {
+    public boolean containsKey(K key) {
         return getEntry(key) != null;
     }
 
@@ -208,7 +208,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      */
     public boolean containsValue(V value) {
         for (TreeMapEntry<K,V> e = getFirstEntry(); e != null; e = successor(e))
-            if (valEquals(value, e.value, valuesEq))
+            if (valEquals(value, e.value))
                 return true;
         return false;
     }
@@ -234,7 +234,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * @throws NullPointerException if specified key is null and its comparator
      *         does not permit null keys
      */
-    public V get(ManagedObject key) {
+    public V get(K key) {
         TreeMapEntry<K,V> p = getEntry(key);
         return (p==null ? null : p.value);
     }
@@ -297,20 +297,8 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * @throws NullPointerException if specified key is null and its comparator
      *         does not permit null keys
      */
-    final TreeMapEntry<K,V> getEntry(ManagedObject key) {
-        // Offload comparator-based version for sake of performance
-        return getEntryUsingComparator(key);
-    }
-
-    /**
-     * Version of getEntry using comparator. Split off from getEntry
-     * for performance. (This is not worth doing for most methods,
-     * that are less dependent on comparator performance, but is
-     * worthwhile here.)
-     */
-    final TreeMapEntry<K,V> getEntryUsingComparator(ManagedObject key) {
-        @SuppressWarnings("unchecked")
-            K k = (K) key;
+    final TreeMapEntry<K,V> getEntry(K key) {
+        K k = key;
         Comparator<? super K> cpr = comparator;
         TreeMapEntry<K,V> p = root;
         while (p != null) {
@@ -483,7 +471,6 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         }
         int cmp;
         TreeMapEntry<K,V> parent;
-        // split comparator and comparable paths
         Comparator<? super K> cpr = comparator;
         do {
             parent = t;
@@ -519,7 +506,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * @throws NullPointerException if specified key is null and its comparator
      *         does not permit null keys
      */
-    public V remove(ManagedObject key) {
+    public V remove(K key) {
         TreeMapEntry<K,V> p = getEntry(key);
         if (p == null)
             return null;
@@ -672,15 +659,6 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * Returns a {@link Set} view of the keys contained in this map.
      *
      * <p>The set's iterator returns the keys in ascending order.
-     * The set's spliterator is
-     * <em><a href="Spliterator.html#binding">late-binding</a></em>,
-     * <em>fail-fast</em>, and additionally reports {@link Spliterator#SORTED}
-     * and {@link Spliterator#ORDERED} with an encounter order that is ascending
-     * key order.  The spliterator's comparator (see
-     * {@link java.util.Spliterator#getComparator()}) is {@code null} if
-     * the tree map's comparator (see {@link #comparator()}) is {@code null}.
-     * Otherwise, the spliterator's comparator is the same as or imposes the
-     * same total ordering as the tree map's comparator.
      *
      * <p>The set is backed by the map, so changes to the map are
      * reflected in the set, and vice-versa.  If the map is modified
@@ -702,7 +680,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      */
     public NavigableSet<K> navigableKeySet() {
         KeySet<K> nks = navigableKeySet;
-        return (nks != null) ? nks : (navigableKeySet = new KeySet<>(this, keysHasher));
+        return (nks != null) ? nks : (navigableKeySet = new KeySet<>(this));
     }
 
     /**
@@ -716,11 +694,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * Returns a {@link Collection} view of the values contained in this map.
      *
      * <p>The collection's iterator returns the values in ascending order
-     * of the corresponding keys. The collection's spliterator is
-     * <em><a href="Spliterator.html#binding">late-binding</a></em>,
-     * <em>fail-fast</em>, and additionally reports {@link Spliterator#ORDERED}
-     * with an encounter order that is ascending order of the corresponding
-     * keys.
+     * of the corresponding keys.
      *
      * <p>The collection is backed by the map, so changes to the map are
      * reflected in the collection, and vice-versa.  If the map is
@@ -736,7 +710,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     public Collection<V> values() {
         Collection<V> vs = values;
         if (vs == null) {
-            vs = new Values(valuesEq);
+            vs = new Values();
             values = vs;
         }
         return vs;
@@ -745,12 +719,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * Returns a {@link Set} view of the mappings contained in this map.
      *
-     * <p>The set's iterator returns the entries in ascending key order. The
-     * sets's spliterator is
-     * <em><a href="Spliterator.html#binding">late-binding</a></em>,
-     * <em>fail-fast</em>, and additionally reports {@link Spliterator#SORTED} and
-     * {@link Spliterator#ORDERED} with an encounter order that is ascending key
-     * order.
+     * <p>The set's iterator returns the entries in ascending key order.
      *
      * <p>The set is backed by the map, so changes to the map are
      * reflected in the set, and vice-versa.  If the map is modified
@@ -766,7 +735,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      */
     public Set<Map.Entry<K,V>> entrySet() {
         EntrySet es = entrySet;
-        return (es != null) ? es : (entrySet = new EntrySet(new MapEntryEquality<>(keysHasher, valuesEq)));
+        return (es != null) ? es : (entrySet = new EntrySet());
     }
 
     /**
@@ -777,7 +746,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         return (km != null) ? km :
             (descendingMap = new DescendingSubMap<>(this,
                                                     true, null, true,
-                                                    true, null, true, keysHasher, valuesEq));
+                                                    true, null, true, keysEq, valuesEq));
     }
 
     /**
@@ -791,7 +760,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                                     K toKey,   boolean toInclusive) {
         return new AscendingSubMap<>(this,
                                      false, fromKey, fromInclusive,
-                                     false, toKey,   toInclusive, keysHasher, valuesEq);
+                                     false, toKey,   toInclusive, keysEq, valuesEq);
     }
 
     /**
@@ -804,7 +773,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     public NavigableMap<K,V> headMap(K toKey, boolean inclusive) {
         return new AscendingSubMap<>(this,
                                      true,  null,  true,
-                                     false, toKey, inclusive, keysHasher, valuesEq);
+                                     false, toKey, inclusive, keysEq, valuesEq);
     }
 
     /**
@@ -817,7 +786,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive) {
         return new AscendingSubMap<>(this,
                                      false, fromKey, inclusive,
-                                     true,  null,    true, keysHasher, valuesEq);
+                                     true,  null,    true, keysEq, valuesEq);
     }
 
     /**
@@ -854,8 +823,8 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     // View class support
 
     class Values extends AbstractCollection<V> {
-        Values(Equality<V> eq) {
-            super(eq);
+        Values() {
+            super(valuesEq);
         }
 
         public Iterator<V> iterator() {
@@ -872,7 +841,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
 
         public boolean remove(V o) {
             for (TreeMapEntry<K,V> e = getFirstEntry(); e != null; e = successor(e)) {
-                if (valEquals(e.getValue(), o, eq)) {
+                if (valEquals(e.getValue(), o)) {
                     deleteEntry(e);
                     return true;
                 }
@@ -886,8 +855,8 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     }
 
     class EntrySet extends AbstractSet<Map.Entry<K,V>> {
-        EntrySet(Equality<Map.Entry<K, V>> entryEquality) {
-            super(entryEquality);
+        EntrySet() {
+            super(new MapEntryEquality<>(keysEq, valuesEq));
         }
 
         public Iterator<Map.Entry<K,V>> iterator() {
@@ -898,14 +867,14 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
             Map.Entry<K,V> entry = o;
             V value = entry.getValue();
             TreeMapEntry<K,V> p = getEntry(entry.getKey());
-            return p != null && valEquals(p.getValue(), value, TreeMap.this.valuesEq);
+            return p != null && valEquals(p.getValue(), value);
         }
 
         public boolean remove(Map.Entry<K,V> o) {
             Map.Entry<K,V> entry = o;
             V value = entry.getValue();
             TreeMapEntry<K,V> p = getEntry(entry.getKey());
-            if (p != null && valEquals(p.getValue(), value, TreeMap.this.valuesEq)) {
+            if (p != null && valEquals(p.getValue(), value)) {
                 deleteEntry(p);
                 return true;
             }
@@ -939,11 +908,9 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
 
     static final class KeySet<E extends ManagedObject> extends AbstractSet<E> implements NavigableSet<E> {
         private final NavigableMap<E, ?> m;
-        private final Hasher<E> keysHasher;
 
-        KeySet(NavigableMap<E,?> map, Hasher<E> h) {
-            super(h);
-            keysHasher = h;
+        KeySet(NavigableMap<E,?> map) {
+            super(map.getKeysEquality());
             m = map;
         }
 
@@ -988,13 +955,13 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         public NavigableSet<E> subSet(E fromElement, boolean fromInclusive,
                                       E toElement,   boolean toInclusive) {
             return new KeySet<>(m.subMap(fromElement, fromInclusive,
-                                          toElement,   toInclusive), keysHasher);
+                                          toElement,   toInclusive));
         }
         public NavigableSet<E> headSet(E toElement, boolean inclusive) {
-            return new KeySet<>(m.headMap(toElement, inclusive), keysHasher);
+            return new KeySet<>(m.headMap(toElement, inclusive));
         }
         public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
-            return new KeySet<>(m.tailMap(fromElement, inclusive), keysHasher);
+            return new KeySet<>(m.tailMap(fromElement, inclusive));
         }
         public SortedSet<E> subSet(E fromElement, E toElement) {
             return subSet(fromElement, true, toElement, false);
@@ -1006,14 +973,14 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
             return tailSet(fromElement, true);
         }
         public NavigableSet<E> descendingSet() {
-            return new KeySet<>(m.descendingMap(), keysHasher);
+            return new KeySet<>(m.descendingMap());
         }
     }
 
     /**
      * Base class for TreeMap Iterators
      */
-    abstract class PrivateEntryIterator<T extends ManagedObject> implements Iterator<T> {
+    abstract class PrivateEntryIterator<T extends ManagedObject> extends ManagedObject implements Iterator<T> {
         TreeMapEntry<K,V> next;
         TreeMapEntry<K,V> lastReturned;
         int expectedModCount;
@@ -1114,17 +1081,16 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     /**
      * Compares two keys using the correct comparison method for this TreeMap.
      */
-    @SuppressWarnings("unchecked")
-    final int compare(ManagedObject k1, ManagedObject k2) {
-        return comparator.compare((K)k1, (K)k2);
+    final int compare(K k1, K k2) {
+        return comparator.compare(k1, k2);
     }
 
     /**
      * Test two values for equality.  Differs from eq.equals(o1, o2) only in
      * that it copes with {@code null} o1 properly.
      */
-    static final<V extends ManagedObject> boolean valEquals(V o1, V o2, Equality<V> eq) {
-        return (o1==null ? o2==null : eq.equals(o1, o2));
+    final boolean valEquals(V o1, V o2) {
+        return (o1==null ? o2==null : valuesEq.equals(o1, o2));
     }
 
     /**
@@ -1146,7 +1112,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * Returns the key corresponding to the specified Entry.
      * @throws NoSuchElementException if the Entry is null
      */
-    static <K extends ManagedObject> K key(TreeMapEntry<K,?> e) {
+    static <K extends ManagedObject> K key(TreeMapEntry<K, ? extends ManagedObject> e) {
         if (e==null)
             throw new NoSuchElementException();
         return e.key;
@@ -1186,8 +1152,8 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         NavigableSubMap(TreeMap<K,V> m,
                         boolean fromStart, K lo, boolean loInclusive,
                         boolean toEnd,     K hi, boolean hiInclusive,
-                        Hasher<K> keysHasher,    Equality<V> valuesEq) {
-            super(keysHasher, valuesEq);
+                        Equality<K> keysEq,      Equality<V> valuesEq) {
+            super(keysEq, valuesEq);
             if (!fromStart && !toEnd) {
                 if (m.compare(lo, hi) > 0)
                     throw new IllegalArgumentException("fromKey > toKey");
@@ -1209,7 +1175,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
 
         // internal utilities
 
-        final boolean tooLow(ManagedObject key) {
+        final boolean tooLow(K key) {
             if (!fromStart) {
                 int c = m.compare(key, lo);
                 if (c < 0 || (c == 0 && !loInclusive))
@@ -1218,7 +1184,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
             return false;
         }
 
-        final boolean tooHigh(ManagedObject key) {
+        final boolean tooHigh(K key) {
             if (!toEnd) {
                 int c = m.compare(key, hi);
                 if (c > 0 || (c == 0 && !hiInclusive))
@@ -1227,16 +1193,16 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
             return false;
         }
 
-        final boolean inRange(ManagedObject key) {
+        final boolean inRange(K key) {
             return !tooLow(key) && !tooHigh(key);
         }
 
-        final boolean inClosedRange(ManagedObject key) {
+        final boolean inClosedRange(K key) {
             return (fromStart || m.compare(key, lo) >= 0)
                 && (toEnd || m.compare(hi, key) >= 0);
         }
 
-        final boolean inRange(ManagedObject key, boolean inclusive) {
+        final boolean inRange(K key, boolean inclusive) {
             return inclusive ? inRange(key) : inClosedRange(key);
         }
 
@@ -1330,7 +1296,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
             return (fromStart && toEnd) ? m.size() : entrySet().size();
         }
 
-        public final boolean containsKey(ManagedObject key) {
+        public final boolean containsKey(K key) {
             return inRange(key) && m.containsKey(key);
         }
 
@@ -1340,11 +1306,11 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
             return m.put(key, value);
         }
 
-        public final V get(ManagedObject key) {
+        public final V get(K key) {
             return !inRange(key) ? null :  m.get(key);
         }
 
-        public final V remove(ManagedObject key) {
+        public final V remove(K key) {
             return !inRange(key) ? null : m.remove(key);
         }
 
@@ -1420,7 +1386,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         public final NavigableSet<K> navigableKeySet() {
             KeySet<K> nksv = navigableKeySetView;
             return (nksv != null) ? nksv :
-                (navigableKeySetView = new TreeMap.KeySet<>(this, keysHasher));
+                (navigableKeySetView = new TreeMap.KeySet<>(this));
         }
 
         public final Set<K> keySet() {
@@ -1481,7 +1447,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                     return false;
                 TreeMapEntry<K, V> node = m.getEntry(key);
                 return node != null &&
-                    valEquals(node.getValue(), entry.getValue(), eq);
+                    m.valEquals(node.getValue(), entry.getValue());
             }
 
             public boolean remove(Map.Entry<K,V> o) {
@@ -1490,8 +1456,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 if (!inRange(key))
                     return false;
                 TreeMapEntry<K,V> node = m.getEntry(key);
-                if (node!=null && valEquals(node.getValue(),
-                                            entry.getValue(), eq)) {
+                if (node!=null && m.valEquals(node.getValue(), entry.getValue())) {
                     m.deleteEntry(node);
                     return true;
                 }
@@ -1502,10 +1467,10 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         /**
          * Iterators for SubMaps
          */
-        abstract class SubMapIterator<T extends ManagedObject> implements Iterator<T> {
+        abstract class SubMapIterator<T extends ManagedObject> extends ManagedObject implements Iterator<T> {
             TreeMapEntry<K,V> lastReturned;
             TreeMapEntry<K,V> next;
-            final Object fenceKey;
+            final ManagedObject fenceKey;
             int expectedModCount;
 
             SubMapIterator(TreeMapEntry<K,V> first,
@@ -1594,7 +1559,6 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
             }
         }
 
-        // Implement minimal Spliterator as KeySpliterator backup
         final class SubMapKeyIterator extends SubMapIterator<K> {
             SubMapKeyIterator(TreeMapEntry<K,V> first,
                               TreeMapEntry<K,V> fence) {
@@ -1629,8 +1593,8 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         AscendingSubMap(TreeMap<K,V> m,
                         boolean fromStart, K lo, boolean  loInclusive,
                         boolean toEnd,     K hi, boolean  hiInclusive,
-                        Hasher<K> keysHasher,    Equality<V> valuesEq) {
-            super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive, keysHasher, valuesEq);
+                        Equality<K> keysEq,    Equality<V> valuesEq) {
+            super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive, keysEq, valuesEq);
         }
 
         public Comparator<? super K> comparator() {
@@ -1645,7 +1609,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 throw new IllegalArgumentException("toKey out of range");
             return new AscendingSubMap<>(m,
                                          false, fromKey, fromInclusive,
-                                         false, toKey,   toInclusive, keysHasher, valuesEq);
+                                         false, toKey,   toInclusive, keysEq, valuesEq);
         }
 
         public NavigableMap<K,V> headMap(K toKey, boolean inclusive) {
@@ -1657,7 +1621,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 throw new IllegalArgumentException("toKey out of range");
             return new AscendingSubMap<>(m,
                                          fromStart, lo,    loInclusive,
-                                         false,     toKey, inclusive, keysHasher, valuesEq);
+                                         false,     toKey, inclusive, keysEq, valuesEq);
         }
 
         public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive) {
@@ -1669,7 +1633,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 throw new IllegalArgumentException("fromKey out of range");
             return new AscendingSubMap<>(m,
                                          false, fromKey, inclusive,
-                                         toEnd, hi,      hiInclusive, keysHasher, valuesEq);
+                                         toEnd, hi,      hiInclusive, keysEq, valuesEq);
         }
 
         public NavigableMap<K,V> descendingMap() {
@@ -1678,7 +1642,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 (descendingMapView =
                  new DescendingSubMap<>(m,
                                         fromStart, lo, loInclusive,
-                                        toEnd,     hi, hiInclusive, keysHasher, valuesEq));
+                                        toEnd,     hi, hiInclusive, keysEq, valuesEq));
         }
 
         Iterator<K> keyIterator() {
@@ -1700,7 +1664,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
 
         public Set<Map.Entry<K,V>> entrySet() {
             EntrySetView es = entrySetView;
-            return (es != null) ? es : (entrySetView = new AscendingEntrySetView(new MapEntryEquality<>(keysHasher, valuesEq), valuesEq));
+            return (es != null) ? es : (entrySetView = new AscendingEntrySetView(new MapEntryEquality<>(keysEq, valuesEq), valuesEq));
         }
 
         TreeMapEntry<K,V> subLowest()       { return absLowest(); }
@@ -1718,8 +1682,8 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         DescendingSubMap(TreeMap<K,V> m,
                          boolean fromStart, K lo, boolean loInclusive,
                          boolean toEnd,     K hi, boolean hiInclusive,
-                         Hasher<K> keysHasher,    Equality<V> valuesEq) {
-            super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive, keysHasher, valuesEq);
+                         Equality<K> keysEq,    Equality<V> valuesEq) {
+            super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive, keysEq, valuesEq);
         }
 
         private final Comparator<? super K> reverseComparator =
@@ -1737,7 +1701,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 throw new IllegalArgumentException("toKey out of range");
             return new DescendingSubMap<>(m,
                                           false, toKey,   toInclusive,
-                                          false, fromKey, fromInclusive, keysHasher, valuesEq);
+                                          false, fromKey, fromInclusive, keysEq, valuesEq);
         }
 
         public NavigableMap<K,V> headMap(K toKey, boolean inclusive) {
@@ -1749,7 +1713,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 throw new IllegalArgumentException("toKey out of range");
             return new DescendingSubMap<>(m,
                                           false, toKey, inclusive,
-                                          toEnd, hi,    hiInclusive, keysHasher, valuesEq);
+                                          toEnd, hi,    hiInclusive, keysEq, valuesEq);
         }
 
         public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive) {
@@ -1761,7 +1725,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 throw new IllegalArgumentException("fromKey out of range");
             return new DescendingSubMap<>(m,
                                           fromStart, lo, loInclusive,
-                                          false, fromKey, inclusive, keysHasher, valuesEq);
+                                          false, fromKey, inclusive, keysEq, valuesEq);
         }
 
         public NavigableMap<K,V> descendingMap() {
@@ -1771,7 +1735,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                  new AscendingSubMap<>(m,
                                        fromStart, lo, loInclusive,
                                        toEnd,     hi, hiInclusive,
-                                       keysHasher, valuesEq));
+                                       keysEq, valuesEq));
         }
 
         Iterator<K> keyIterator() {
@@ -1794,7 +1758,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
 
         public Set<Map.Entry<K,V>> entrySet() {
             EntrySetView es = entrySetView;
-            return (es != null) ? es : (entrySetView = new DescendingEntrySetView(new MapEntryEquality<>(keysHasher, valuesEq), valuesEq));
+            return (es != null) ? es : (entrySetView = new DescendingEntrySetView(new MapEntryEquality<>(keysEq, valuesEq), valuesEq));
         }
 
         TreeMapEntry<K,V> subLowest()       { return absHighest(); }
@@ -1816,8 +1780,8 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      */
     private class SubMap extends AbstractMap<K,V>
         implements SortedMap<K,V> {
-        protected SubMap(Hasher<K> keysHasher, Equality<V> valuesEq) {
-            super(keysHasher, valuesEq);
+        protected SubMap(Equality<K> keysEq, Equality<V> valuesEq) {
+            super(keysEq, valuesEq);
         }
 
         private boolean fromStart = false, toEnd = false;
@@ -2291,8 +2255,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 key = (K)it.next();
                 value = defaultVal;
             }
-        }
-        else
+        } else
             return null;
 
         TreeMapEntry<K,V> middle =  new TreeMapEntry<>(key, value, null);

@@ -26,6 +26,7 @@
 
 package mk.util;
 
+import mk.lang.Equality;
 import mk.lang.ManagedObject;
 
 // Android-changed: removed link to collections framework docs
@@ -50,17 +51,18 @@ import mk.lang.ManagedObject;
  * object is a key in the map.  A special case of this prohibition is that it
  * is not permissible for a map to contain itself as a key.  While it is
  * permissible for a map to contain itself as a value, extreme caution is
- * advised: the {@code equals} and {@code hashCode} methods are no longer
- * well defined on such a map.
+ * advised: the {@code equals} and {@code hashCode} methods require special
+ * handling if applied for such maps.
  *
  * <p>All general-purpose map implementation classes should provide two
- * "standard" constructors: a void (no arguments) constructor which creates an
- * empty map, and a constructor with a single argument of type {@code Map},
- * which creates a new map with the same key-value mappings as its argument.
- * In effect, the latter constructor allows the user to copy any map,
+ * "standard" constructors: a constructor with Hasher<K> and Equality<V>
+ * objects arguments which creates an empty map, and a constructor with
+ * an argument of type {@code Map} along with Hasher<K> and Equality<V> objects
+ * arguments, which creates a new map with the same key-value mappings as its
+ * argument. In effect, the latter constructor allows the user to copy any map,
  * producing an equivalent map of the desired class.  There is no way to
  * enforce this recommendation (as interfaces cannot contain constructors) but
- * all of the general-purpose map implementations in the JDK comply.
+ * all of the general-purpose map implementations in the library comply.
  *
  * <p>The "destructive" methods contained in this interface, that is, the
  * methods that modify the map on which they operate, are specified to throw
@@ -86,17 +88,17 @@ import mk.lang.ManagedObject;
  * interface.
  *
  * <p>Many methods in Collections Framework interfaces are defined
- * in terms of the Object equals method.  For
+ * in terms of the {@code equals} method.  For
  * example, the specification for the {@link #containsKey(K)
  * containsKey(ManagedObject key)} method says: "returns {@code true} if and
  * only if this map contains a mapping for a key {@code k} such that
- * {@code (key==null ? k==null : keysHasher.equals(key, k))}." This specification should
- * <i>not</i> be construed to imply that invoking {@code Map.containsKey}
- * with a non-null argument {@code key} will cause {@code keysHasher.equals(key, k)} to
- * be invoked for any key {@code k}.  Implementations are free to
- * implement optimizations whereby the {@code equals} invocation is avoided,
- * for example, by first comparing the hash codes of the two keys.  (The
- * Object hashCode specification guarantees that two objects with
+ * {@code (key==null ? k==null : getKeysEquality().equals(key, k))}."
+ * This specification should <i>not</i> be construed to imply that invoking
+ * {@code Map.containsKey} with a non-null argument {@code key} will cause
+ * {@code getKeysEquality().equals(key, k)} to be invoked for any key {@code k}.
+ * Implementations are free to implement optimizations whereby the {@code equals}
+ * invocation is avoided, for example, by first comparing the hash codes of the two keys.
+ * (The {@code hashCode()} specification guarantees that two objects with
  * unequal hash codes cannot be equal.)
  *
  * <p>Some map operations which perform recursive traversal of the map may fail
@@ -140,7 +142,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      * Returns {@code true} if this map contains a mapping for the specified
      * key.  More formally, returns {@code true} if and only if
      * this map contains a mapping for a key {@code k} such that
-     * {@code keysHasher.equals(key, k)}.  (There can be at most one such mapping.)
+     * {@code getKeysEquality().equals(key, k)}.  (There can be at most one such mapping.)
      *
      * @param key key whose presence in this map is to be tested
      * @return {@code true} if this map contains a mapping for the specified
@@ -158,7 +160,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      * Returns {@code true} if this map maps one or more keys to the
      * specified value.  More formally, returns {@code true} if and only if
      * this map contains at least one mapping to a value {@code v} such that
-     * {@code valuesEq.equals(value, v)}.  This operation
+     * {@code getValuesEquality().equals(value, v)}.  This operation
      * will probably require time linear in the map size for most
      * implementations of the {@code Map} interface.
      *
@@ -180,7 +182,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      *
      * <p>More formally, if this map contains a mapping from a key
      * {@code k} to a value {@code v} such that
-     * {@code keysHasher.equals(key, k)},
+     * {@code getKeysEquality().equals(key, k)},
      * then this method returns {@code v}; otherwise
      * it returns {@code null}.  (There can be at most one such mapping.)
      *
@@ -234,7 +236,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      * Removes the mapping for a key from this map if it is present
      * (optional operation).   More formally, if this map contains a mapping
      * from key {@code k} to value {@code v} such that
-     * {@code keysHasher.equals(key, k)}, that mapping is removed.
+     * {@code getKeysEquality().equals(key, k)}, that mapping is removed.
      * (The map can contain at most one such mapping.)
      *
      * <p>Returns the value to which this map previously associated the key,
@@ -363,7 +365,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
      * @see Map#entrySet()
      * @since 1.2
      */
-    interface MapEntry<K extends ManagedObject, V extends ManagedObject> {
+    public abstract class Entry<K extends ManagedObject, V extends ManagedObject> extends ManagedObject {
         /**
          * Returns the key corresponding to this entry.
          *
@@ -372,7 +374,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
          *         required to, throw this exception if the entry has been
          *         removed from the backing map.
          */
-        K getKey();
+        public abstract K getKey();
 
         /**
          * Returns the value corresponding to this entry.  If the mapping
@@ -384,7 +386,7 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
          *         required to, throw this exception if the entry has been
          *         removed from the backing map.
          */
-        V getValue();
+        public abstract V getValue();
 
         /**
          * Replaces the value corresponding to this entry with the specified
@@ -406,11 +408,16 @@ public interface Map<K extends ManagedObject, V extends ManagedObject> {
          *         required to, throw this exception if the entry has been
          *         removed from the backing map.
          */
-        V setValue(V value);
+        public abstract V setValue(V value);
     }
 
-    static abstract class Entry<K extends ManagedObject, V extends ManagedObject>
-            extends ManagedObject
-            implements MapEntry<K, V> {
-    }
+    /**
+     * @return external implementation of keys comparison.
+     */
+    public Equality<K> getKeysEquality();
+
+    /**
+     * @return external implementation of values comparison.
+     */
+    public Equality<V> getValuesEquality();
 }

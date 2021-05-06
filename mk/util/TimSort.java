@@ -64,7 +64,7 @@ import mk.lang.System;
  *
  * @author Josh Bloch
  */
-class TimSort<T> {
+class TimSort<T extends ManagedObject> {
     /**
      * This is the minimum sized sequence that will be merged.  Shorter
      * sequences will be lengthened by calling binarySort.  If the entire
@@ -278,7 +278,7 @@ class TimSort<T> {
      * @param c comparator to used for the sort
      */
     @SuppressWarnings("fallthrough")
-    private static <T> void binarySort(T[] a, int lo, int hi, int start,
+    private static <T extends ManagedObject> void binarySort(T[] a, int lo, int hi, int start,
                                        Comparator<? super T> c) {
         assert lo <= start && start <= hi;
         if (start == lo)
@@ -538,7 +538,7 @@ class TimSort<T> {
      *    the first k elements of a should precede key, and the last n - k
      *    should follow it.
      */
-    private static <T> int gallopLeft(T key, T[] a, int base, int len, int hint,
+    private static <T extends ManagedObject> int gallopLeft(T key, T[] a, int base, int len, int hint,
                                       Comparator<? super T> c) {
         assert len > 0 && hint >= 0 && hint < len;
         int lastOfs = 0;
@@ -608,7 +608,7 @@ class TimSort<T> {
      * @param c the comparator used to order the range, and to search
      * @return the int k,  0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
      */
-    private static <T> int gallopRight(T key, T[] a, int base, int len,
+    private static <T extends ManagedObject> int gallopRight(T key, T[] a, int base, int len,
                                        int hint, Comparator<? super T> c) {
         assert len > 0 && hint >= 0 && hint < len;
 

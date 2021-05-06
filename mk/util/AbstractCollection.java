@@ -72,7 +72,7 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
      * @param  eq         the object with the implementation of external comparison
      */
     protected AbstractCollection(Equality<E> eq) {
-        this.eq = eq;
+        this.eq = Objects.requireNonNull(eq);
     }
 
     // Query Operations

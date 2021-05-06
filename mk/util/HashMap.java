@@ -76,7 +76,7 @@ import mk.lang.System;
  * instance, creating it with a sufficiently large capacity will allow
  * the mappings to be stored more efficiently than letting it perform
  * automatic rehashing as needed to grow the table.  Note that using
- * many keys with the same hashCode() is a sure way to slow
+ * many keys with the same {@code hashCode()} is a sure way to slow
  * down performance of any hash table.
  *
  * <p><strong>Note that this implementation is not synchronized.</strong>
@@ -194,6 +194,12 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      */
 
     /**
+     * External implementations of 'equals' and 'hashCode' operations
+     * for hashed keys
+     */
+    protected Hasher<K> keysHasher;
+
+    /**
      * The default initial capacity - MUST be a power of two.
      */
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
@@ -244,16 +250,12 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
         final K key;
         V value;
         Node<K,V> next;
-        Hasher<K> keysHasher;
-        Equality<V> valuesEq;
 
         Node(int hash, K key, V value, Node<K,V> next, Hasher<K> keysHasher, Equality<V> valuesEq) {
             this.hash = hash;
             this.key = key;
             this.value = value;
             this.next = next;
-            this.keysHasher = keysHasher;
-            this.valuesEq = valuesEq;
         }
 
         public final K getKey()        { return key; }
@@ -265,14 +267,15 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
             return oldValue;
         }
 
-        public final boolean equalTo(Map.Entry<K, V> o) {
+        public final boolean equalTo(Map.Entry<K, V> o, Equality<K> keysEq, Equality<V> valuesEq) {
             if (o == this)
                 return true;
-            Map.Entry<K,V> e = o;
-            if ((key == e.getKey() ||
-                    (key != null && keysHasher.equals(key, e.getKey()))) &&
-                    (value == e.getValue() ||
-                            (value != null && valuesEq.equals(value, e.getValue()))))
+            if (o == null)
+                return false;
+            if ((key == o.getKey() ||
+                    keysEq.equals(key, o.getKey())) &&
+                    (value == o.getValue() ||
+                            valuesEq.equals(value, o.getValue())))
                 return true;
             return false;
         }
@@ -296,7 +299,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      * to incorporate impact of the highest bits that would otherwise
      * never be used in index calculations because of table bounds.
      */
-    static final<K extends ManagedObject> int hash(K key, Hasher<K> keysHasher) {
+    final int hash(K key) {
         int h;
         return (key == null) ? 0 : (h = keysHasher.getHashCode(key)) ^ (h >>> 16);
     }
@@ -389,6 +392,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                                                loadFactor);
         this.loadFactor = loadFactor;
         this.threshold = tableSizeFor(initialCapacity);
+        this.keysHasher = keysHasher;
     }
 
     /**
@@ -416,6 +420,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      */
     public HashMap(Hasher<K> keysHasher, Equality<V> valuesEq) {
         super(keysHasher, valuesEq);
+        this.keysHasher = keysHasher;
         this.loadFactor = DEFAULT_LOAD_FACTOR; // all other fields defaulted
     }
 
@@ -433,6 +438,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      */
     public HashMap(Map<? extends K, ? extends V> m, Hasher<K> keysHasher, Equality<V> valuesEq) {
         super(keysHasher, valuesEq);
+        this.keysHasher = keysHasher;
         this.loadFactor = DEFAULT_LOAD_FACTOR;
         putMapEntries(m, false);
     }
@@ -460,7 +466,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                 Map.Entry<? extends K, ? extends V> e = it.next();
                 K key = e.getKey();
                 V value = e.getValue();
-                putVal(hash(key, keysHasher), key, value, false, evict);
+                putVal(hash(key), key, value, false, evict);
             }
         }
     }
@@ -502,7 +508,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      */
     public V get(K key) {
         Node<K,V> e;
-        return (e = getNode(hash(key, keysHasher), key)) == null ? null : e.value;
+        return (e = getNode(hash(key), key)) == null ? null : e.value;
     }
 
     /**
@@ -517,14 +523,14 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (first = tab[(n - 1) & hash]) != null) {
             if (first.hash == hash && // always check first node
-                ((k = first.key) == key || (key != null && keysHasher.equals(key, k))))
+                ((k = first.key) == key || keysHasher.equals(key, k)))
                 return first;
             if ((e = first.next) != null) {
                 if (first instanceof TreeNode)
-                    return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+                    return ((TreeNode<K,V>)first).getTreeNode(hash, key, keysHasher, valuesEq);
                 do {
                     if (e.hash == hash &&
-                        ((k = e.key) == key || (key != null && keysHasher.equals((K) key, k))))
+                        ((k = e.key) == key || keysHasher.equals((K) key, k)))
                         return e;
                 } while ((e = e.next) != null);
             }
@@ -541,7 +547,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      * key.
      */
     public boolean containsKey(K key) {
-        return getNode(hash(key, keysHasher), key) != null;
+        return getNode(hash(key), key) != null;
     }
 
     /**
@@ -557,7 +563,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      *         previously associated <tt>null</tt> with <tt>key</tt>.)
      */
     public V put(K key, V value) {
-        return putVal(hash(key, keysHasher), key, value, false, true);
+        return putVal(hash(key), key, value, false, true);
     }
 
     /**
@@ -580,7 +586,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
         else {
             Node<K,V> e; K k;
             if (p.hash == hash &&
-                ((k = p.key) == key || (key != null && keysHasher.equals(key, k))))
+                ((k = p.key) == key || keysHasher.equals(key, k)))
                 e = p;
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
@@ -593,7 +599,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                         break;
                     }
                     if (e.hash == hash &&
-                        ((k = e.key) == key || (key != null && keysHasher.equals(key, k))))
+                        ((k = e.key) == key || keysHasher.equals(key, k)))
                         break;
                     p = e;
                 }
@@ -744,7 +750,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      */
     public V remove(K key) {
         Node<K,V> e;
-        return (e = removeNode(hash(key, keysHasher), key, null, false, true)) == null ?
+        return (e = removeNode(hash(key), key, null, false, true)) == null ?
             null : e.value;
     }
 
@@ -765,16 +771,15 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
             if (p.hash == hash &&
-                ((k = p.key) == key || (key != null && keysHasher.equals(key, k))))
+                ((k = p.key) == key || keysHasher.equals(key, k)))
                 node = p;
             else if ((e = p.next) != null) {
                 if (p instanceof TreeNode)
-                    node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
+                    node = ((TreeNode<K,V>)p).getTreeNode(hash, key, keysHasher, valuesEq);
                 else {
                     do {
                         if (e.hash == hash &&
-                            ((k = e.key) == key ||
-                             (key != null && keysHasher.equals(key, k)))) {
+                            ((k = e.key) == key || keysHasher.equals(key, k))) {
                             node = e;
                             break;
                         }
@@ -783,7 +788,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                 }
             }
             if (node != null && (!matchValue || (v = node.value) == value ||
-                                 (value != null && valuesEq.equals(value, v)))) {
+                                 valuesEq.equals(value, v))) {
                 if (node instanceof TreeNode)
                     ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
                 else if (node == p)
@@ -826,8 +831,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
         if ((tab = table) != null && size > 0) {
             for (int i = 0; i < tab.length; ++i) {
                 for (Node<K,V> e = tab[i]; e != null; e = e.next) {
-                    if ((v = e.value) == value ||
-                        (value != null && valuesEq.equals(value, v)))
+                    if ((v = e.value) == value || valuesEq.equals(value, v))
                         return true;
                 }
             }
@@ -853,15 +857,15 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
-            ks = new KeySet(keysHasher);
+            ks = new KeySet();
             keySet = ks;
         }
         return ks;
     }
 
     final class KeySet extends AbstractSet<K> {
-        KeySet(Hasher<K> eq) {
-            super(eq);
+        KeySet() {
+            super(keysHasher);
         }
 
         public final int size()                 { return size; }
@@ -869,7 +873,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
         public final Iterator<K> iterator()     { return new KeyIterator(); }
         public final boolean contains(K o) { return containsKey(o); }
         public final boolean remove(K key) {
-            return removeNode(hash(key, keysHasher), key, null, false, true) != null;
+            return removeNode(hash(key), key, null, false, true) != null;
         }
     }
 
@@ -891,15 +895,15 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
     public Collection<V> values() {
         Collection<V> vs = values;
         if (vs == null) {
-            vs = new Values(valuesEq);
+            vs = new Values();
             values = vs;
         }
         return vs;
     }
 
     final class Values extends AbstractCollection<V> {
-        Values(Equality<V> eq) {
-            super(eq);
+        Values() {
+            super(valuesEq);
         }
 
         public final int size()                 { return size; }
@@ -926,12 +930,12 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
      */
     public Set<Map.Entry<K,V>> entrySet() {
         Set<Map.Entry<K,V>> es;
-        return (es = entrySet) == null ? (entrySet = new EntrySet(new MapEntryEquality<>(keysHasher, valuesEq))) : es;
+        return (es = entrySet) == null ? (entrySet = new EntrySet()) : es;
     }
 
     final class EntrySet extends AbstractSet<Map.Entry<K,V>> {
-        EntrySet(Equality<Map.Entry<K, V>> entryEquality) {
-            super(entryEquality);
+        EntrySet() {
+            super(new MapEntryEquality<>(keysHasher, valuesEq));
         }
         public final int size()                 { return size; }
         public final void clear()               { HashMap.this.clear(); }
@@ -939,27 +943,15 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
             return new EntryIterator();
         }
         public final boolean contains(Map.Entry<K,V> o) {
-            Map.Entry<K,V> e = o;
-            K key = e.getKey();
-            Node<K,V> candidate = getNode(hash(key, keysHasher), key);
-            return candidate != null && candidate.equalTo(e);
+            K key = o.getKey();
+            Node<K,V> candidate = getNode(hash(key), key);
+            return candidate != null && candidate.equalTo(o, keysHasher, valuesEq);
         }
         public final boolean remove(Map.Entry<K,V> o) {
-            Map.Entry<K,V> e = o;
-            K key = e.getKey();
-            V value = e.getValue();
-            return removeNode(hash(key, keysHasher), key, value, true, true) != null;
+            K key = o.getKey();
+            V value = o.getValue();
+            return removeNode(hash(key), key, value, true, true) != null;
         }
-    }
-
-    // Overrides of JDK8 Map extension methods
-
-    // These methods are also used when serializing HashSets
-    final float loadFactor() { return loadFactor; }
-    final int capacity() {
-        return (table != null) ? table.length :
-            (threshold > 0) ? threshold :
-            DEFAULT_INITIAL_CAPACITY;
     }
 
     /* ------------------------------------------------------------ */
@@ -1006,7 +998,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                 throw new ConcurrentModificationException();
             current = null;
             K key = p.key;
-            removeNode(hash(key, keysHasher), key, null, false, false);
+            removeNode(hash(key), key, null, false, false);
             expectedModCount = modCount;
         }
     }
@@ -1132,9 +1124,9 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
 
         /**
          * Finds the node starting at root p with the given hash and key.
-         * Removed comparison via comparableClassFor() and compareComparables()
+         * NIPS Note: removed comparison via comparableClassFor() and compareComparables()
          */
-        final TreeNode<K,V> find(int h, K k) {
+        final TreeNode<K,V> find(int h, K k, Equality<K> keysEq, Equality<V> valuesEq) {
             TreeNode<K,V> p = this;
             do {
                 int ph; K pk;
@@ -1143,13 +1135,13 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                     p = pl;
                 else if (ph < h)
                     p = pr;
-                else if ((pk = p.key) == k || (k != null && keysHasher.equals(k, pk)))
+                else if ((pk = p.key) == k || (k != null && keysEq.equals(k, pk)))
                     return p;
                 else if (pl == null)
                     p = pr;
                 else if (pr == null)
                     p = pl;
-                else if ((q = pr.find(h, k)) != null)
+                else if ((q = pr.find(h, k, keysEq, valuesEq)) != null)
                     return q;
                 else
                     p = pl;
@@ -1160,14 +1152,14 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
         /**
          * Calls find for root node.
          */
-        final TreeNode<K,V> getTreeNode(int h, K k) {
-            return ((parent != null) ? root() : this).find(h, k);
+        final TreeNode<K,V> getTreeNode(int h, K k, Equality<K> keysEq, Equality<V> valuesEq) {
+            return ((parent != null) ? root() : this).find(h, k, keysEq, valuesEq);
         }
 
         /**
          * Tie-breaking utility for ordering insertions when equal
-         * hashCodes and non-comparable. We don't require a total
-         * order, just a consistent insertion rule to maintain
+         * hashCodes. We don't require a total order,
+         * just a consistent insertion rule to maintain
          * equivalence across rebalancings. Tie-breaking further than
          * necessary simplifies testing a bit.
          */
@@ -1179,7 +1171,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
 
         /**
          * Forms tree of the nodes linked from this node.
-         * Removed comparison via comparableClassFor() and compareComparables()
+         * NIPS Note: removed comparison via comparableClassFor() and compareComparables()
          * @return root of tree
          */
         final void treeify(Node<K,V>[] tab) {
@@ -1238,10 +1230,12 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
 
         /**
          * Tree version of putVal.
-         * Removed comparison via comparableClassFor() and compareComparables()
+         * NIPS Note: removed comparison via comparableClassFor() and compareComparables()
          */
         final TreeNode<K,V> putTreeVal(HashMap<K,V> map, Node<K,V>[] tab,
                                        int h, K k, V v) {
+            Equality<K> keysEq = map.getKeysEquality();
+            Equality<V> valuesEq = map.getValuesEquality();
             boolean searched = false;
             TreeNode<K,V> root = (parent != null) ? root() : this;
             for (TreeNode<K,V> p = root;;) {
@@ -1250,16 +1244,16 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                     dir = -1;
                 else if (ph < h)
                     dir = 1;
-                else if ((pk = p.key) == k || (k != null && keysHasher.equals(k, pk)))
+                else if ((pk = p.key) == k || (k != null && keysEq.equals(k, pk)))
                     return p;
                 else {
                     if (!searched) {
                         TreeNode<K,V> q, ch;
                         searched = true;
                         if (((ch = p.left) != null &&
-                                (q = ch.find(h, k)) != null) ||
+                                (q = ch.find(h, k, keysEq, valuesEq)) != null) ||
                                 ((ch = p.right) != null &&
-                                (q = ch.find(h, k)) != null))
+                                (q = ch.find(h, k, keysEq, valuesEq)) != null))
                             return q;
                     }
                     dir = tieBreakOrder(k, pk);

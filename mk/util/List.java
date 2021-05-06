@@ -330,10 +330,7 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      */
     boolean retainAll(Collection<E> c);
 
-    // Android-added: List.sort() vs. Collections.sort() app compat.
-    // Added a warning in the documentation.
-    // Collections.sort() calls List.sort() for apps targeting API version >= 26
-    // (Android Oreo) but the other way around for app targeting <= 25 (Nougat).
+    // Collections.sort() calls List.sort()
     /**
      * Sorts this list according to the order induced by the specified
      * {@link Comparator}.
@@ -345,24 +342,7 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      *
      * <p>This list must be modifiable, but need not be resizable.
      *
-     * <p>For apps running on and targeting Android versions greater than
-     * Nougat (API level {@code > 25}), {@link Collections#sort(List, Comparator)}
-     * delegates to this method. Such apps must not call
-     * {@link Collections#sort(List, Comparator)} from this method. Instead, prefer
-     * not overriding this method at all. If you must override it, consider
-     * this implementation:
-     * <pre>
-     * &#064;Override
-     * public void sort(Comparator&lt;? super E&gt; c) {
-     *   Object[] elements = toArray();
-     *   Arrays.sort(elements, c);
-     *   ListIterator&lt;E&gt; iterator = (ListIterator&lt;Object&gt;) listIterator();
-     *   for (Object element : elements) {
-     *     iterator.next();
-     *     iterator.set((E) element);
-     *   }
-     * }
-     * </pre>
+     * <p> {@link Collections#sort(List, Comparator)} delegates to this method.
      *
      * @implSpec
      * The default implementation obtains an array containing all elements in
@@ -405,16 +385,7 @@ public interface List<E extends ManagedObject> extends Collection<E> {
      *         contract
      * @since 1.8
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    default void sort(Comparator<? super E> c) {
-        ManagedObject[] a = this.toArray();
-        Arrays.sort(a, (Comparator) c);
-        ListIterator<E> i = this.listIterator();
-        for (ManagedObject e : a) {
-            i.next();
-            i.set((E) e);
-        }
-    }
+    public void sort(Comparator<? super E> c);
 
     /**
      * Removes all of the elements from this list (optional operation).
