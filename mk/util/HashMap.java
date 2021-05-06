@@ -1135,7 +1135,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                     p = pl;
                 else if (ph < h)
                     p = pr;
-                else if ((pk = p.key) == k || (k != null && keysEq.equals(k, pk)))
+                else if ((pk = p.key) == k || keysEq.equals(k, pk))
                     return p;
                 else if (pl == null)
                     p = pr;
@@ -1244,7 +1244,7 @@ public class HashMap<K extends ManagedObject, V extends ManagedObject> extends A
                     dir = -1;
                 else if (ph < h)
                     dir = 1;
-                else if ((pk = p.key) == k || (k != null && keysEq.equals(k, pk)))
+                else if ((pk = p.key) == k || keysEq.equals(k, pk))
                     return p;
                 else {
                     if (!searched) {

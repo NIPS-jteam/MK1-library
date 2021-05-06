@@ -77,7 +77,7 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
     protected Equality<V> valuesEq;
 
     /**
-     * Sole constructor.  (For invocation by subclass constructors, typically
+     * Main constructor.  (For invocation by subclass constructors, typically
      * implicit.)
      *
      * @param  keysEq the object with the implementations of 'equals'
@@ -86,6 +86,16 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
      */
     protected AbstractMap(Equality<K> keysEq, Equality<V> valuesEq) {
         this.keysEq = Objects.requireNonNull(keysEq);
+        this.valuesEq = Objects.requireNonNull(valuesEq);
+    }
+
+    /**
+     * Constructor defining only valuesEq.  (For invocation by subclass
+     * constructors, in particular TreeMap.)
+     *
+     * @param  valuesEq   the object with the implementation of external comparison
+     */
+    protected AbstractMap(Equality<V> valuesEq) {
         this.valuesEq = Objects.requireNonNull(valuesEq);
     }
 

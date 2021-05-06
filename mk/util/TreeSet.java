@@ -130,7 +130,7 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
      *        operation for hashed keys
      */
     public TreeSet(Comparator<? super E> comparator, Equality<E> keysEq) {
-        this(new TreeMap<>(comparator, keysEq, PRESENT_EQUALITY), keysEq);
+        this(new TreeMap<>(comparator, PRESENT_EQUALITY), keysEq);
     }
 
     /**

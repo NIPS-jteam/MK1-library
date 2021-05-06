@@ -42,19 +42,6 @@ import mk.lang.ManagedObject;
  * operations.  Algorithms are adaptations of those in Cormen, Leiserson, and
  * Rivest's <em>Introduction to Algorithms</em>.
  *
- * <p>Note that the ordering maintained by a tree map, like any sorted map, and
- * whether or not an explicit comparator is provided, must be <em>consistent
- * with {@code equals}</em> if this sorted map is to correctly implement the
- * {@code Map} interface.  (See {@code Comparator} for a
- * precise definition of <em>consistent with equals</em>.)  This is so because
- * the {@code Map} interface is defined in terms of the {@code equals}
- * operation, but a sorted map performs all key comparisons using its
- * {@code compare} method, so two keys that are deemed equal by
- * this method are, from the standpoint of the sorted map, equal.  The behavior
- * of a sorted map <em>is</em> well-defined even if its ordering is
- * inconsistent with {@code equals}; it just fails to obey the general contract
- * of the {@code Map} interface.
- *
  * <p><strong>Note that this implementation is not synchronized.</strong>
  * If multiple threads access a map concurrently, and at least one of the
  * threads modifies the map structurally, it <em>must</em> be synchronized
@@ -122,6 +109,19 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     private transient int modCount = 0;
 
     /**
+     * Equality class for keys, compatible with comparator and using
+     * its method to compare keys for equality.
+     */
+    public class CompareEquality implements Equality<K> {
+        @Override
+        public boolean equals(K a, K b) {
+            return compare(a, b) == 0;
+        }
+    }
+
+    private final CompareEquality COMPARE_EQUALITY = new CompareEquality();
+
+    /**
      * Constructs a new, empty tree map, ordered according to the given
      * comparator.  All keys inserted into the map must be <em>mutually
      * comparable</em> by the given comparator: {@code comparator.compare(k1,
@@ -133,13 +133,12 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      *
      * @param comparator the comparator that will be used to order this map.
      *        If {@code null} the call will throw NullPointerException
-     * @param keysEq the object with the implementations of 'equals'
-     *        operation for hashed keys
      * @param valuesEq   the object with the implementation of external comparison
      *        for values
      */
-    public TreeMap(Comparator<? super K> comparator, Equality<K> keysEq, Equality<V> valuesEq) {
-        super(keysEq, valuesEq);
+    public TreeMap(Comparator<? super K> comparator, Equality<V> valuesEq) {
+        super(valuesEq);
+        keysEq = COMPARE_EQUALITY;
         this.comparator = Objects.requireNonNull(comparator);
     }
 
@@ -150,14 +149,13 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      *
      * @param  m  the sorted map whose mappings are to be placed in this map,
      *         and whose comparator is to be used to sort this map
-     * @param  keysEq the object with the implementations of 'equals'
-     *         operation for hashed keys
      * @param  valuesEq the object with the implementation of external comparison
      *         for values
      * @throws NullPointerException if the specified map is null
      */
-    public TreeMap(SortedMap<K, ? extends V> m, Equality<K> keysEq, Equality<V> valuesEq) {
-        super(keysEq, valuesEq);
+    public TreeMap(SortedMap<K, ? extends V> m, Equality<V> valuesEq) {
+        super(valuesEq);
+        keysEq = COMPARE_EQUALITY;
         comparator = Objects.requireNonNull(m.comparator());
         try {
             buildFromSorted(m.size(), m.entrySet().iterator(), null);
@@ -1593,7 +1591,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         AscendingSubMap(TreeMap<K,V> m,
                         boolean fromStart, K lo, boolean  loInclusive,
                         boolean toEnd,     K hi, boolean  hiInclusive,
-                        Equality<K> keysEq,    Equality<V> valuesEq) {
+                        Equality<K> keysEq,      Equality<V> valuesEq) {
             super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive, keysEq, valuesEq);
         }
 
@@ -1682,7 +1680,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         DescendingSubMap(TreeMap<K,V> m,
                          boolean fromStart, K lo, boolean loInclusive,
                          boolean toEnd,     K hi, boolean hiInclusive,
-                         Equality<K> keysEq,    Equality<V> valuesEq) {
+                         Equality<K> keysEq,      Equality<V> valuesEq) {
             super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive, keysEq, valuesEq);
         }
 
