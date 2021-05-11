@@ -409,7 +409,9 @@ public class Arrays {
 
         ArrayList(E[] array, Equality<E> e) {
             super(e);
-            a = Objects.requireNonNull(array);
+            if (array == null)
+                throw new NullPointerException();
+            a = array;
             eq = e;
         }
 

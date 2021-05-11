@@ -85,8 +85,10 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
      * @param  valuesEq   the object with the implementation of external comparison
      */
     protected AbstractMap(Equality<K> keysEq, Equality<V> valuesEq) {
-        this.keysEq = Objects.requireNonNull(keysEq);
-        this.valuesEq = Objects.requireNonNull(valuesEq);
+        if (keysEq == null || valuesEq == null)
+            throw new NullPointerException();
+        this.keysEq = keysEq;
+        this.valuesEq = valuesEq;
     }
 
     /**
@@ -96,7 +98,9 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
      * @param  valuesEq   the object with the implementation of external comparison
      */
     protected AbstractMap(Equality<V> valuesEq) {
-        this.valuesEq = Objects.requireNonNull(valuesEq);
+        if (valuesEq == null)
+            throw new NullPointerException();
+        this.valuesEq = valuesEq;
     }
 
     // Query Operations

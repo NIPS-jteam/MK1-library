@@ -623,7 +623,8 @@ public class ArrayList<E extends ManagedObject> extends AbstractList<E>
      * @see Collection#contains(E)
      */
     public boolean removeAll(Collection<E> c) {
-        Objects.requireNonNull(c);
+        if (c == null)
+            throw new NullPointerException();
         return batchRemove(c, false);
     }
 
@@ -644,7 +645,8 @@ public class ArrayList<E extends ManagedObject> extends AbstractList<E>
      * @see Collection#contains(E)
      */
     public boolean retainAll(Collection<E> c) {
-        Objects.requireNonNull(c);
+        if (c == null)
+            throw new NullPointerException();
         return batchRemove(c, true);
     }
 

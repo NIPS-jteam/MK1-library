@@ -27,8 +27,8 @@
 package mk.lang;
 
 /**
- * The <code>System</code> class contains 2 methods
- * identityHashCode and arraycopy. For the moment they call
+ * The <code>System</code> class contains 3 methods -
+ * identityHashCode, arraycopy and newArray. For the moment they call
  * native java.lang.System original methods.
  *
  * @author  unascribed
@@ -155,5 +155,20 @@ public final class System {
         }
         // TODO REPLACE-NATIVE
         return java.lang.System.identityHashCode(x);
+    }
+
+    /**
+     * Method to create new array with type and size passed through its arguments.
+     * For the moment it calls appropriate Reflection API method.
+     *
+     * @param orig
+     * @param len
+     * @param <T>
+     * @return
+     */
+    public static <T extends ManagedObject> T[] newArray(T[] orig, int len) {
+        // TODO REPLACE-NATIVE
+        return (T[]) java.lang.reflect.Array.newInstance
+                (orig.getClass().getComponentType(), len);
     }
 }

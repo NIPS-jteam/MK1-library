@@ -72,7 +72,9 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
      * @param  eq         the object with the implementation of external comparison
      */
     protected AbstractCollection(Equality<E> eq) {
-        this.eq = Objects.requireNonNull(eq);
+        if (eq == null)
+            throw new NullPointerException();
+        this.eq = eq;
     }
 
     // Query Operations
@@ -321,7 +323,9 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
      * @see #contains(E)
      */
     public boolean removeAll(Collection<E> c) {
-        Objects.requireNonNull(c);
+        if (c == null)
+            throw new NullPointerException();
+
         boolean modified = false;
         Iterator<E> it = iterator();
         while (it.hasNext()) {
@@ -355,7 +359,8 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
      * @see #contains(E)
      */
     public boolean retainAll(Collection<E> c) {
-        Objects.requireNonNull(c);
+        if (c == null)
+            throw new NullPointerException();
         boolean modified = false;
         Iterator<E> it = iterator();
         while (it.hasNext()) {

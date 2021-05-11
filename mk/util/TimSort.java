@@ -157,8 +157,7 @@ class TimSort<T extends ManagedObject> {
         int tlen = (len < 2 * INITIAL_TMP_STORAGE_LENGTH) ?
             len >>> 1 : INITIAL_TMP_STORAGE_LENGTH;
         if (work == null || workLen < tlen || workBase + tlen > work.length) {
-            @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            T[] newArray = (T[]) new ManagedObject[tlen];
+            T[] newArray = System.newArray(a, tlen);
             tmp = newArray;
             tmpBase = 0;
             tmpLen = tlen;
@@ -933,8 +932,7 @@ class TimSort<T extends ManagedObject> {
             else
                 newSize = Math.min(newSize, a.length >>> 1);
 
-            @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            T[] newArray = (T[]) new ManagedObject[newSize];
+            T[] newArray = System.newArray(a, newSize);
             tmp = newArray;
             tmpLen = newSize;
             tmpBase = 0;

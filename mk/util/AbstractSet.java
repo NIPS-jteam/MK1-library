@@ -104,7 +104,9 @@ public abstract class AbstractSet<E extends ManagedObject> extends AbstractColle
      * @see #contains(E)
      */
     public boolean removeAll(Collection<E> c) {
-        Objects.requireNonNull(c);
+        if (c == null)
+            throw new NullPointerException();
+
         boolean modified = false;
 
         if (size() > c.size()) {
