@@ -30,6 +30,7 @@ package mk.util;
 import mk.lang.Equality;
 import mk.lang.Hasher;
 import mk.lang.ManagedObject;
+import mk.util.CompareEquality;
 
 
 /**
@@ -109,19 +110,6 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
     private transient int modCount = 0;
 
     /**
-     * Equality class for keys, compatible with comparator and using
-     * its method to compare keys for equality.
-     */
-    public class CompareEquality implements Equality<K> {
-        @Override
-        public boolean equals(K a, K b) {
-            return compare(a, b) == 0;
-        }
-    }
-
-    private final CompareEquality COMPARE_EQUALITY = new CompareEquality();
-
-    /**
      * Constructs a new, empty tree map, ordered according to the given
      * comparator.  All keys inserted into the map must be <em>mutually
      * comparable</em> by the given comparator: {@code comparator.compare(k1,
@@ -137,8 +125,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      *        for values
      */
     public TreeMap(Comparator<? super K> comparator, Equality<V> valuesEq) {
-        super(valuesEq);
-        keysEq = COMPARE_EQUALITY;
+        super(new CompareEquality<K>(comparator), valuesEq);
         this.comparator = Objects.requireNonNull(comparator);
     }
 
@@ -154,8 +141,7 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
      * @throws NullPointerException if the specified map is null
      */
     public TreeMap(SortedMap<K, ? extends V> m, Equality<V> valuesEq) {
-        super(valuesEq);
-        keysEq = COMPARE_EQUALITY;
+        super(new CompareEquality<K>(m.comparator()), valuesEq);
         comparator = Objects.requireNonNull(m.comparator());
         try {
             buildFromSorted(m.size(), m.entrySet().iterator(), null);
@@ -1765,32 +1751,6 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
         TreeMapEntry<K,V> subHigher(K key)  { return absLower(key); }
         TreeMapEntry<K,V> subFloor(K key)   { return absCeiling(key); }
         TreeMapEntry<K,V> subLower(K key)   { return absHigher(key); }
-    }
-
-    /**
-     * This class exists solely for the sake of serialization
-     * compatibility with previous releases of TreeMap that did not
-     * support NavigableMap.  It translates an old-version SubMap into
-     * a new-version AscendingSubMap. This class is never otherwise
-     * used.
-     *
-     * @serial include
-     */
-    private class SubMap extends AbstractMap<K,V>
-        implements SortedMap<K,V> {
-        protected SubMap(Equality<K> keysEq, Equality<V> valuesEq) {
-            super(keysEq, valuesEq);
-        }
-
-        private boolean fromStart = false, toEnd = false;
-        private K fromKey, toKey;
-        public Set<Map.Entry<K,V>> entrySet() { throw new InternalError(); }
-        public K lastKey() { throw new InternalError(); }
-        public K firstKey() { throw new InternalError(); }
-        public SortedMap<K,V> subMap(K fromKey, K toKey) { throw new InternalError(); }
-        public SortedMap<K,V> headMap(K toKey) { throw new InternalError(); }
-        public SortedMap<K,V> tailMap(K fromKey) { throw new InternalError(); }
-        public Comparator<? super K> comparator() { throw new InternalError(); }
     }
 
 

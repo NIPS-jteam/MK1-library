@@ -26,10 +26,11 @@
 
 package mk.util;
 
-import mk.lang.Hasher;
 import mk.lang.Equality;
+import mk.lang.Hasher;
 import mk.lang.ManagedObject;
 import mk.lang.Math;
+import mk.util.IdentityEquality;
 
 /**
  * This class implements the <tt>Set</tt> interface, backed by a hash table
@@ -90,17 +91,7 @@ public class HashSet<E extends ManagedObject>
     private static final ManagedObject PRESENT = new ManagedObject();
 
     // Equality implementation for dummy value
-    private static final IdentityEquality EQ = new IdentityEquality();
-
-    /**
-     *  Identity Equality class to compare for equality for a dummy value
-     */
-    static class IdentityEquality implements Equality<ManagedObject> {
-        @Override
-        public boolean equals(ManagedObject a, ManagedObject b) {
-            return a == b;
-        }
-    }
+    private static final IdentityEquality<ManagedObject> EQ = new IdentityEquality<>();
 
     /**
      * Constructs a new, empty set; the backing <tt>HashMap</tt> instance has

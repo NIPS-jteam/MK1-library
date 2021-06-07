@@ -31,6 +31,8 @@ import mk.lang.Equality;
 import mk.lang.Hasher;
 import mk.lang.ManagedObject;
 import mk.lang.System;
+import mk.util.IdentityEquality;
+import mk.util.IdentityHasher;
 
 /**
  * This class consists exclusively of static methods that operate on or return
@@ -1107,30 +1109,6 @@ public class Collections {
         public int previousIndex() { return -1; }
         public void set(E e) { throw new IllegalStateException(); }
         public void add(E e) { throw new UnsupportedOperationException(); }
-    }
-
-    /**
-     * Identity Equality class for Empty classes-wrappers
-     *
-     * @param <T>
-     */
-    public static class IdentityEquality<T extends ManagedObject> implements Equality<T> {
-        @Override
-        public boolean equals(T a, T b) {
-            return a == b;
-        }
-    }
-
-    /**
-     * Identity Hasher class for Empty classes-wrappers
-     *
-     * @param <T>
-     */
-    public static class IdentityHasher<T extends ManagedObject> extends IdentityEquality<T> implements Hasher<T> {
-        @Override
-        public int getHashCode(T o) {
-            return System.identityHashCode(o);
-        }
     }
 
     /**

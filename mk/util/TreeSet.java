@@ -29,6 +29,7 @@ package mk.util;
 import mk.lang.Equality;
 import mk.lang.Hasher;
 import mk.lang.ManagedObject;
+import mk.util.IdentityEquality;
 
 /**
  * A {@link NavigableSet} implementation based on a {@link TreeMap}.
@@ -94,17 +95,7 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
     private static final ManagedObject PRESENT = new ManagedObject();
 
     // Equality implementation for dummy value
-    private static final IdentityEquality PRESENT_EQUALITY = new IdentityEquality();
-
-    /**
-     *  Provides a way to compare a class for equality for a dummy value
-     */
-    static class IdentityEquality implements Equality<ManagedObject> {
-        @Override
-        public boolean equals(ManagedObject a, ManagedObject b) {
-            return a == b;
-        }
-    }
+    private static final IdentityEquality<ManagedObject> PRESENT_EQUALITY = new IdentityEquality<>();
 
     /**
      * Constructs a set backed by the specified navigable map.

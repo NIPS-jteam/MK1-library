@@ -91,18 +91,6 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
         this.valuesEq = valuesEq;
     }
 
-    /**
-     * Constructor defining only valuesEq.  (For invocation by subclass
-     * constructors, in particular TreeMap.)
-     *
-     * @param  valuesEq   the object with the implementation of external comparison
-     */
-    protected AbstractMap(Equality<V> valuesEq) {
-        if (valuesEq == null)
-            throw new NullPointerException();
-        this.valuesEq = valuesEq;
-    }
-
     // Query Operations
 
     /**

@@ -397,7 +397,7 @@ public abstract class AbstractCollection<E extends ManagedObject> extends Manage
 
     /**
      * Returns external implementation of object comparison.
-     * @return Equality object of super class.
+     * @return Equality object.
      */
     @Override
     public Equality<E> getEquality() {
