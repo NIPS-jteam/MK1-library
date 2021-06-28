@@ -86,11 +86,6 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
      */
     private transient NavigableMap<E,ManagedObject> m;
 
-    /**
-     * External implementations of 'equals' operation for hashed keys
-     */
-    private Equality<E> keysEq;
-
     // Dummy value to associate with an Object in the backing Map
     private static final ManagedObject PRESENT = new ManagedObject();
 
@@ -100,9 +95,8 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
     /**
      * Constructs a set backed by the specified navigable map.
      */
-    TreeSet(NavigableMap<E,ManagedObject> m, Equality<E> keysEq) {
-        super(keysEq);
-        this.keysEq = keysEq;
+    TreeSet(NavigableMap<E,ManagedObject> m) {
+        super(m.getKeysEquality());
         this.m = m;
     }
 
@@ -117,11 +111,9 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
      *
      * @param comparator the comparator that will be used to order this set.
      *        If {@code null} the call will throw NullPointerException.
-     * @param keysEq the object with the implementations of 'equals'
-     *        operation for hashed keys
      */
-    public TreeSet(Comparator<? super E> comparator, Equality<E> keysEq) {
-        this(new TreeMap<>(comparator, PRESENT_EQUALITY), keysEq);
+    public TreeSet(Comparator<? super E> comparator) {
+        this(new TreeMap<>(comparator, PRESENT_EQUALITY));
     }
 
     /**
@@ -129,12 +121,10 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
      * using the same ordering as the specified sorted set.
      *
      * @param s  sorted set whose elements will comprise the new set
-     * @param keysEq  the object with the implementations of 'equals'
-     *        operation for hashed keys
      * @throws NullPointerException if the specified sorted set is null
      */
-    public TreeSet(SortedSet<E> s, Equality<E> keysEq) {
-        this(s.comparator(), keysEq);
+    public TreeSet(SortedSet<E> s) {
+        this(s.comparator());
         addAll(s);
     }
 
@@ -161,7 +151,7 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
      * @since 1.6
      */
     public NavigableSet<E> descendingSet() {
-        return new TreeSet<>(m.descendingMap(), keysEq);
+        return new TreeSet<>(m.descendingMap());
     }
 
     /**
@@ -284,7 +274,7 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
     public NavigableSet<E> subSet(E fromElement, boolean fromInclusive,
                                   E toElement,   boolean toInclusive) {
         return new TreeSet<>(m.subMap(fromElement, fromInclusive,
-                toElement,   toInclusive), keysEq);
+                toElement,   toInclusive));
     }
 
     /**
@@ -295,7 +285,7 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
      * @since 1.6
      */
     public NavigableSet<E> headSet(E toElement, boolean inclusive) {
-        return new TreeSet<>(m.headMap(toElement, inclusive), keysEq);
+        return new TreeSet<>(m.headMap(toElement, inclusive));
     }
 
     /**
@@ -306,7 +296,7 @@ public class TreeSet<E extends ManagedObject> extends AbstractSet<E>
      * @since 1.6
      */
     public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
-        return new TreeSet<>(m.tailMap(fromElement, inclusive), keysEq);
+        return new TreeSet<>(m.tailMap(fromElement, inclusive));
     }
 
     /**
