@@ -847,15 +847,17 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
             return new EntryIterator(getFirstEntry());
         }
 
-        public boolean contains(Map.Entry<K,V> o) {
-            Map.Entry<K,V> entry = o;
+        public boolean contains(Map.Entry<K,V> entry) {
+            if (entry == null)
+                return false;
             V value = entry.getValue();
             TreeMapEntry<K,V> p = getEntry(entry.getKey());
             return p != null && valEquals(p.getValue(), value);
         }
 
-        public boolean remove(Map.Entry<K,V> o) {
-            Map.Entry<K,V> entry = o;
+        public boolean remove(Map.Entry<K,V> entry) {
+            if (entry == null)
+                return false;
             V value = entry.getValue();
             TreeMapEntry<K,V> p = getEntry(entry.getKey());
             if (p != null && valEquals(p.getValue(), value)) {
@@ -1424,8 +1426,9 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                 return n == null || tooHigh(n.key);
             }
 
-            public boolean contains(Map.Entry<K,V> o) {
-                Map.Entry<K,V> entry = o;
+            public boolean contains(Map.Entry<K,V> entry) {
+                if (entry == null)
+                    return false;
                 K key = entry.getKey();
                 if (!inRange(key))
                     return false;
@@ -1434,8 +1437,9 @@ public class TreeMap<K extends ManagedObject, V extends ManagedObject>
                     m.valEquals(node.getValue(), entry.getValue());
             }
 
-            public boolean remove(Map.Entry<K,V> o) {
-                Map.Entry<K,V> entry = o;
+            public boolean remove(Map.Entry<K,V> entry) {
+                if (entry == null)
+                    return false;
                 K key = entry.getKey();
                 if (!inRange(key))
                     return false;

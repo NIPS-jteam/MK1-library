@@ -613,11 +613,15 @@ public class LinkedHashMap<K extends ManagedObject, V extends ManagedObject>
             return new LinkedEntryIterator();
         }
         public final boolean contains(Map.Entry<K,V> o) {
+            if (o == null)
+                return false;
             K key = o.getKey();
             Node<K,V> candidate = getNode(hash(key), key);
             return candidate != null && candidate.equalTo(o, keysHasher, valuesEq);
         }
         public final boolean remove(Map.Entry<K,V> o) {
+            if (o == null)
+                return false;
             K key = o.getKey();
             V value = o.getValue();
             return removeNode(hash(key), key, value, true, true) != null;

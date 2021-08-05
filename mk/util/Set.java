@@ -26,7 +26,6 @@
 
 package mk.util;
 
-import mk.lang.Equality;
 import mk.lang.ManagedObject;
 
 /**

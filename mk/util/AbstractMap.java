@@ -544,7 +544,7 @@ public abstract class AbstractMap<K extends ManagedObject, V extends ManagedObje
         private Equality<K> keysEq;
         private Equality<V> valuesEq;
 
-        MapEntryEquality(Equality<K> h, Equality<V> e){
+        public MapEntryEquality(Equality<K> h, Equality<V> e){
             keysEq = h;
             valuesEq = e;
         }

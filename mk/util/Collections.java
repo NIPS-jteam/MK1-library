@@ -948,6 +948,8 @@ public class Collections {
              * setValue method.
              */
             public boolean contains(Map.Entry<K,V> o) {
+                if (o == null)
+                    return false;
                 return c.contains(new UnmodifiableEntry<>(o));
             }
 
