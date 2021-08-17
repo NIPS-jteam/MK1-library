@@ -26,10 +26,7 @@
 
 package mk.util;
 
-import mk.lang.Equality;
-import mk.lang.Hasher;
 import mk.lang.ManagedObject;
-import mk.util.IdentityEquality;
 
 /**
  * A {@link NavigableSet} implementation based on a {@link TreeMap}.

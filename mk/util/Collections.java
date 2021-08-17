@@ -28,11 +28,7 @@
 package mk.util;
 
 import mk.lang.Equality;
-import mk.lang.Hasher;
 import mk.lang.ManagedObject;
-import mk.lang.System;
-import mk.util.IdentityEquality;
-import mk.util.IdentityHasher;
 
 /**
  * This class consists exclusively of static methods that operate on or return

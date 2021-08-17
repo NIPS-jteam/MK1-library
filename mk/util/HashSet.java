@@ -26,11 +26,9 @@
 
 package mk.util;
 
-import mk.lang.Equality;
 import mk.lang.Hasher;
 import mk.lang.ManagedObject;
 import mk.lang.Math;
-import mk.util.IdentityEquality;
 
 /**
  * This class implements the <tt>Set</tt> interface, backed by a hash table
